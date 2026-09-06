@@ -18,7 +18,7 @@ export const BANDS: readonly (readonly [number, number])[] = [
 export const THRESHOLD_COEFF = 1.0;
 export const THRESHOLD_DECAY = 0.95;
 
-export const FREQ_FUZZ = 1;
+export const FREQ_FUZZ = 0;
 
 export const TARGET_ZONE_MIN = 1;
 export const TARGET_ZONE_MAX = 63;
