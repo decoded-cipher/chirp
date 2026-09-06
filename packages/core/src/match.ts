@@ -69,13 +69,16 @@ export function match(index: Index, query: readonly Fingerprint[]): Match[] {
   return matches.sort((a, b) => b.votes - a.votes);
 }
 
-export function identify(index: Index, query: readonly Fingerprint[]): Identification | null {
-  const results = match(index, query);
-  const top = results[0];
+export function decide(ranked: readonly Match[]): Identification | null {
+  const top = ranked[0];
   if (!top) return null;
 
-  const confidence = results[1] ? top.votes / results[1].votes : Infinity;
+  const confidence = ranked[1] ? top.votes / ranked[1].votes : Infinity;
   return confidence >= MIN_MARGIN ? { ...top, confidence } : null;
+}
+
+export function identify(index: Index, query: readonly Fingerprint[]): Identification | null {
+  return decide(match(index, query));
 }
 
 export function offsetSeconds(offsetBucket: number): number {
