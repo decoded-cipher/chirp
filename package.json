@@ -8,6 +8,8 @@
     "tools/*"
   ],
   "scripts": {
+    "build": "bun run --cwd apps/web build",
+    "deploy": "bun run build && bunx wrangler deploy --config apps/api/wrangler.jsonc",
     "test": "bun test",
     "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/core/tsconfig.test.json && tsc --noEmit -p apps/api/tsconfig.json"
   },
