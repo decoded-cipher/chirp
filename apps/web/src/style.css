@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-950: #07080b;
+  --color-ink-900: #0b0d12;
+  --color-ink-850: #10131a;
+  --color-ink-800: #161a23;
+  --color-ink-700: #1f2430;
+  --color-ink-600: #2b3140;
+  --color-ink-500: #3d4454;
+
+  --color-mist-500: #6b7488;
+  --color-mist-400: #8d95a8;
+  --color-mist-200: #c8cdd8;
+  --color-mist-50: #eef1f6;
+
+  --color-signal-500: #34e39b;
+  --color-signal-400: #5cf0b0;
+  --color-signal-300: #8ff7c9;
+
+  --color-pair-500: #4aa8ff;
+  --color-warn-500: #ffb84d;
+  --color-fail-500: #ff6b6b;
+
+  --font-sans: "Inter var", ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--color-ink-950);
+}
+
+body {
+  margin: 0;
+  color: var(--color-mist-50);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@utility surface {
+  background: color-mix(in oklab, var(--color-ink-850) 92%, transparent);
+  border: 1px solid var(--color-ink-700);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@utility rise {
+  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

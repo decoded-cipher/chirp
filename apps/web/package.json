@@ -1,0 +1,23 @@
+{
+  "name": "@chirp/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@chirp/core": "workspace:*",
+    "apexcharts": "^7.1.0",
+    "vue": "^3.5",
+    "vue3-apexcharts": "^1.11.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-vue": "^5",
+    "tailwindcss": "^4.3.3",
+    "vite": "^6",
+    "vue-tsc": "^2"
+  }
+}
