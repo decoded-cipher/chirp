@@ -1,4 +1,4 @@
-import { FRAME_DURATION, MIN_VOTES, OFFSET_BUCKET } from "./constants";
+import { FRAME_DURATION, MIN_MARGIN, MIN_VOTES, OFFSET_BUCKET } from "./constants";
 import type { Fingerprint } from "./hash";
 
 export interface Posting {
@@ -12,6 +12,10 @@ export interface Match {
   songId: number;
   offsetBucket: number;
   votes: number;
+}
+
+export interface Identification extends Match {
+  confidence: number;
 }
 
 export function buildIndex(songs: Iterable<readonly [number, readonly Fingerprint[]]>): Index {
@@ -28,11 +32,6 @@ export function buildIndex(songs: Iterable<readonly [number, readonly Fingerprin
   return index;
 }
 
-/**
- * Mirrors the D1 query in docs/architecture.md §6, including its one-row-per-song
- * rule. A track whose chorus repeats aligns at several offsets, and without that
- * rule its weaker alignments crowd out genuine runners-up.
- */
 export function match(index: Index, query: readonly Fingerprint[]): Match[] {
   const tally = new Map<number, Map<number, number>>();
 
@@ -68,6 +67,15 @@ export function match(index: Index, query: readonly Fingerprint[]): Match[] {
   }
 
   return matches.sort((a, b) => b.votes - a.votes);
+}
+
+export function identify(index: Index, query: readonly Fingerprint[]): Identification | null {
+  const results = match(index, query);
+  const top = results[0];
+  if (!top) return null;
+
+  const confidence = results[1] ? top.votes / results[1].votes : Infinity;
+  return confidence >= MIN_MARGIN ? { ...top, confidence } : null;
 }
 
 export function offsetSeconds(offsetBucket: number): number {

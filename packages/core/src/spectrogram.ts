@@ -5,7 +5,7 @@ import { hannWindow } from "./window";
 export interface Spectrogram {
   frames: number;
   bins: number;
-  /** Squared magnitudes, frame-major. Ranking is unaffected by the missing sqrt. */
+  /** Squared magnitudes, frame-major. */
   power: Float32Array;
 }
 

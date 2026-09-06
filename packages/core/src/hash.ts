@@ -12,7 +12,7 @@ export interface HashParts {
   dt: number;
 }
 
-/** 22 bits, deliberately under 31 so JS bitwise operators cannot produce a negative hash. */
+// 22 bits: staying under 31 keeps JS signed bitwise ops from producing a negative hash.
 export function packHash(anchorBin: number, targetBin: number, dt: number): number {
   return ((anchorBin >> FREQ_FUZZ) << 14) | ((targetBin >> FREQ_FUZZ) << 6) | dt;
 }
