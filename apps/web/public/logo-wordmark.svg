@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 236 64" role="img" aria-label="chirp">
+  <g transform="translate(30 32) scale(1.05) translate(-27.53 -32)" fill="none" stroke="#34e39b" stroke-linecap="round">
+    <path d="M48.07 12.85A25 25 0 1 0 48.07 51.15" stroke-width="6.5"/>
+    <path d="M39.07 23.57A11 11 0 1 0 39.07 40.43" stroke-width="5.5"/>
+  </g>
+  <text x="76" y="45" font-family="Inter, -apple-system, Segoe UI, Roboto, sans-serif"
+        font-size="41" font-weight="600" letter-spacing="-1" fill="#eef1f6">chirp</text>
+</svg>
