@@ -83,8 +83,7 @@ export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
       try {
         round = await analyseWindow();
       } catch (e) {
-        // One bad round shouldn't end the session; the next window may carry
-        // cleaner audio than the one that failed.
+        // The next window may carry cleaner audio than the one that failed.
         error.value = (e as Error).message;
         nextAt = mic.elapsed.value + LISTEN.interval;
         continue;

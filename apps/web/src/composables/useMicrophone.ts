@@ -51,8 +51,7 @@ export function useMicrophone() {
     node.port.onmessage = (event: MessageEvent<Float32Array>) => append(event.data);
     context.createMediaStreamSource(stream).connect(node);
 
-    // Firefox stops pulling a worklet that leads nowhere, so terminate the graph
-    // at a silent gain rather than leaving the node dangling.
+    // Firefox stops pulling a worklet that leads nowhere.
     const silent = context.createGain();
     silent.gain.value = 0;
     node.connect(silent).connect(context.destination);

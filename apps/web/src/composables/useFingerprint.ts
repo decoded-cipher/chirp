@@ -14,8 +14,7 @@ export function runFingerprint(pcm: Float32Array): Promise<FingerprintReply> {
       worker.terminate();
     };
 
-    // The PCM is cloned rather than transferred so the caller can re-run it
-    // through the noise lab without decoding the file again.
+    // Cloned, not transferred, so the noise lab can re-run the same PCM.
     const request: FingerprintRequest = { pcm };
     worker.postMessage(request);
   });

@@ -1,5 +1,3 @@
-// The rolling window outlives the buffer that holds it, so writes wrap and the
-// oldest samples are overwritten in place rather than reallocating each round.
 export class Ring {
   private readonly samples: Float32Array;
   private cursor = 0;

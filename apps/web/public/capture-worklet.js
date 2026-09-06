@@ -1,7 +1,6 @@
 const BATCH = 512;
 
-// Posting every 128-frame render quantum would wake the main thread ~375 times
-// a second for nothing, so batch before crossing the boundary.
+// Batched so the main thread isn't woken every 128-frame render quantum.
 class CaptureProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
