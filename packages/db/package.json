@@ -1,0 +1,11 @@
+{
+  "name": "@chirp/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@chirp/core": "workspace:*"
+  }
+}
