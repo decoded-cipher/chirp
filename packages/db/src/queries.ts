@@ -40,3 +40,10 @@ RETURNING id`;
 export const SONGS_BY_ID = `SELECT * FROM songs WHERE id IN (SELECT value FROM json_each(?1))`;
 
 export const FINGERPRINT_CHUNK = 2000;
+
+export const MAX_POSTINGS_PER_HASH = 512;
+
+export const PRUNE_HEAVY_HASHES = `
+DELETE FROM fingerprints WHERE hash IN (
+  SELECT hash FROM fingerprints GROUP BY hash HAVING COUNT(*) > ${MAX_POSTINGS_PER_HASH}
+)`;

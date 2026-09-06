@@ -1,8 +1,8 @@
 import { Database } from "bun:sqlite";
 import { decide, type Fingerprint, type Identification, type Match } from "@chirp/core";
 import {
-  FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, MATCH, SCHEMA, SONGS_BY_ID,
-  type MatchRow, type SongRow,
+  FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, MATCH, PRUNE_HEAVY_HASHES,
+  SCHEMA, SONGS_BY_ID, type MatchRow, type SongRow,
 } from "@chirp/db";
 
 export interface SongInput {
@@ -46,6 +46,12 @@ export function insertFingerprints(db: Database, songId: number, prints: readonl
   for (let i = 0; i < prints.length; i += FINGERPRINT_CHUNK) {
     write(prints.slice(i, i + FINGERPRINT_CHUNK).map((p) => [p.hash, p.frame]));
   }
+}
+
+export function pruneIndex(db: Database): number {
+  const before = db.query<{ n: number }, []>("SELECT COUNT(*) n FROM fingerprints").get()!.n;
+  db.run(PRUNE_HEAVY_HASHES);
+  return before - db.query<{ n: number }, []>("SELECT COUNT(*) n FROM fingerprints").get()!.n;
 }
 
 export function rank(db: Database, query: readonly Fingerprint[]): Match[] {
