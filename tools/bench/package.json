@@ -1,0 +1,9 @@
+{
+  "name": "@chirp/bench",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@chirp/core": "workspace:*",
+    "@chirp/ingest": "workspace:*"
+  }
+}
