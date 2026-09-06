@@ -1,5 +1,5 @@
 import { MAX_QUERY_HASHES, decide, offsetSeconds, type Match } from "@chirp/core";
-import { MATCH, SONGS_BY_ID, type MatchRow, type SongRow } from "@chirp/db";
+import { HISTOGRAM, MATCH, SONGS_BY_ID, type HistogramRow, type MatchRow, type SongRow } from "@chirp/db";
 import { Hono } from "hono";
 import type { Env } from "../env";
 
@@ -34,11 +34,17 @@ identify.post("/", async (c) => {
   }));
 
   const chosen = decide(candidates);
-  if (!chosen) return c.json({ match: null, candidates: candidates.length });
+  if (!chosen) return c.json({ match: null, candidates: [], histogram: [] });
 
-  const songs = await c.env.DB.prepare(SONGS_BY_ID).bind(JSON.stringify([chosen.songId])).all<SongRow>();
-  const song = songs.results[0];
-  if (!song) return c.json({ match: null, candidates: candidates.length });
+  const ids = candidates.map((m) => m.songId);
+  const [songs, histogram] = await Promise.all([
+    c.env.DB.prepare(SONGS_BY_ID).bind(JSON.stringify(ids)).all<SongRow>(),
+    c.env.DB.prepare(HISTOGRAM).bind(JSON.stringify(pairs), chosen.songId).all<HistogramRow>(),
+  ]);
+
+  const byId = new Map(songs.results.map((s) => [s.id, s]));
+  const song = byId.get(chosen.songId);
+  if (!song) return c.json({ match: null, candidates: [], histogram: [] });
 
   return c.json({
     match: {
@@ -47,5 +53,16 @@ identify.post("/", async (c) => {
       confidence: chosen.confidence === Infinity ? null : Number(chosen.confidence.toFixed(2)),
       offsetSeconds: Number(offsetSeconds(chosen.offsetBucket).toFixed(2)),
     },
+    candidates: candidates.map((m) => ({
+      songId: m.songId,
+      title: byId.get(m.songId)?.title ?? null,
+      artist: byId.get(m.songId)?.artist ?? null,
+      votes: m.votes,
+      offsetSeconds: Number(offsetSeconds(m.offsetBucket).toFixed(2)),
+    })),
+    histogram: histogram.results.map((h) => ({
+      seconds: Number(offsetSeconds(h.offset_bucket).toFixed(2)),
+      votes: h.votes,
+    })),
   });
 });
