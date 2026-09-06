@@ -1,0 +1,8 @@
+{
+  "name": "@chirp/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
