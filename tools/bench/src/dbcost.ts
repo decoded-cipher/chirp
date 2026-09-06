@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { extractPeaks, fingerprint, offsetSeconds, spectrogram, type Fingerprint } from "@chirp/core";
 import { decode, loadCorpus, trackPath } from "@chirp/ingest";
-import { identifyIn, rank } from "@chirp/ingest/store";
+import { identifyIn } from "@chirp/ingest/store";
 
 const db = new Database("chirp.sqlite", { readonly: true });
 const corpus = await loadCorpus();
