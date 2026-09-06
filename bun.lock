@@ -12,6 +12,8 @@
     "apps/api": {
       "name": "@chirp/api",
       "dependencies": {
+        "@chirp/core": "workspace:*",
+        "@chirp/db": "workspace:*",
         "hono": "^4",
       },
       "devDependencies": {
