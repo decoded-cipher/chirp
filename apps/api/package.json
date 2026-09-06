@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "types": "wrangler types"
+    "types": "wrangler types",
+    "migrations": "bun scripts/migrations.ts"
   },
   "dependencies": {
-    "hono": "^4"
+    "hono": "^4",
+    "@chirp/core": "workspace:*",
+    "@chirp/db": "workspace:*"
   },
   "devDependencies": {
     "wrangler": "^4"
