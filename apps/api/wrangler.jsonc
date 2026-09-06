@@ -1,13 +1,22 @@
 {
-  "name": "chirp-api",
+  "name": "chirp",
   "main": "src/index.ts",
   "compatibility_date": "2025-09-01",
   "observability": { "enabled": true },
+  "assets": {
+    "directory": "../web/dist"
+  },
+  "routes": [
+    { "pattern": "chirp.arjunkrishna.dev", "custom_domain": true }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "chirp",
-      "database_id": "local",
+      // Replaced by the UUID from `wrangler d1 create chirp`.
+      "database_id": "PENDING_D1_CREATE",
+      // Keys the local dev store, so it survives the id above changing.
+      "preview_database_id": "local",
       "migrations_dir": "migrations"
     }
   ]
