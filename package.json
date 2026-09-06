@@ -1,0 +1,12 @@
+{
+  "name": "chirp",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*", "tools/*"],
+  "scripts": {
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
