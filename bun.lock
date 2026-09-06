@@ -21,6 +21,12 @@
     "packages/core": {
       "name": "@chirp/core",
     },
+    "packages/db": {
+      "name": "@chirp/db",
+      "dependencies": {
+        "@chirp/core": "workspace:*",
+      },
+    },
     "tools/bench": {
       "name": "@chirp/bench",
       "dependencies": {
@@ -32,6 +38,7 @@
       "name": "@chirp/ingest",
       "dependencies": {
         "@chirp/core": "workspace:*",
+        "@chirp/db": "workspace:*",
       },
     },
   },
@@ -41,6 +48,8 @@
     "@chirp/bench": ["@chirp/bench@workspace:tools/bench"],
 
     "@chirp/core": ["@chirp/core@workspace:packages/core"],
+
+    "@chirp/db": ["@chirp/db@workspace:packages/db"],
 
     "@chirp/ingest": ["@chirp/ingest@workspace:tools/ingest"],
 

@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@chirp/core": "workspace:*"
+    "@chirp/core": "workspace:*",
+    "@chirp/db": "workspace:*"
   },
   "exports": {
     ".": "./src/index.ts"
