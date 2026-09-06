@@ -1,21 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef } from "vue";
-import { catalogue, identify, type IdentifyResponse, type Song } from "./api";
-import { decodeToMono } from "./audio/decode";
+import { catalogue, type IdentifyResponse, type Song } from "./api";
 import CaptureScreen from "./components/CaptureScreen.vue";
 import ResultBoard from "./components/ResultBoard.vue";
-import { runFingerprint } from "./composables/useFingerprint";
 import { useLiveIdentify, type Telemetry } from "./composables/useLiveIdentify";
 import { useMicrophone } from "./composables/useMicrophone";
 import type { FingerprintReply } from "./workers/fingerprint.worker";
 
-const WORKING: Record<string, string> = {
-  decoding: "Decoding",
-  fingerprinting: "Fingerprinting",
-  matching: "Searching the index",
-};
-
-const working = ref<string | null>(null);
 const error = ref<string | null>(null);
 const result = ref<IdentifyResponse | null>(null);
 const print = shallowRef<FingerprintReply | null>(null);
@@ -40,36 +31,6 @@ function reset() {
   pcm.value = null;
   telemetry.value = null;
   error.value = null;
-}
-
-async function analyse(data: ArrayBuffer) {
-  reset();
-
-  try {
-    working.value = WORKING.decoding!;
-    const decoded = await decodeToMono(data);
-    pcm.value = decoded.pcm;
-
-    working.value = WORKING.fingerprinting!;
-    const printed = await runFingerprint(decoded.pcm);
-
-    working.value = WORKING.matching!;
-    const started = performance.now();
-    const response = await identify(printed.hashes);
-
-    print.value = printed;
-    result.value = response;
-    telemetry.value = {
-      rate: decoded.sourceRate,
-      channels: decoded.channels,
-      duration: decoded.duration,
-      queryMs: performance.now() - started,
-    };
-  } catch (e) {
-    error.value = (e as Error).message;
-  } finally {
-    working.value = null;
-  }
 }
 
 async function listen() {
@@ -110,13 +71,11 @@ async function listen() {
       :elapsed="mic.elapsed.value"
       :level="mic.level.value"
       :mic-supported="mic.supported"
-      :working="working"
       :indexed="songs.length"
       :live="listener.live.value"
       :rounds="listener.rounds.value"
       @listen="listen"
       @stop="listener.cancel"
-      @file="async (f) => analyse(await f.arrayBuffer())"
     />
 
     <p v-if="error"
