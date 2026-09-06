@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { LISTEN, type Live } from "../composables/useLiveIdentify";
 
 const props = defineProps<{
   listening: boolean;
-  remaining: number;
+  elapsed: number;
   level: number;
   micSupported: boolean;
   working: string | null;
   indexed: number;
+  live: Live | null;
+  rounds: number;
 }>();
 
-const emit = defineEmits<{ listen: []; file: [File] }>();
+const emit = defineEmits<{ listen: []; stop: []; file: [File] }>();
 
-const progress = computed(() => (props.listening ? 1 - props.remaining / 6 : 0));
 const CIRCUMFERENCE = 2 * Math.PI * 78;
+
+const progress = computed(() => (props.listening ? Math.min(1, props.elapsed / LISTEN.maxSeconds) : 0));
+const certainty = computed(() =>
+  props.live ? Math.min(1, (props.live.confidence ?? LISTEN.settleMargin) / LISTEN.settleMargin) : 0,
+);
 
 function pick(files: FileList | null | undefined) {
   const file = files?.[0];
@@ -35,9 +42,9 @@ function pick(files: FileList | null | undefined) {
     </div>
 
     <button
-      class="group relative mt-14 grid size-52 place-items-center rounded-full outline-none disabled:cursor-not-allowed"
-      :disabled="!micSupported || listening || !!working"
-      @click="emit('listen')"
+      class="group relative mt-12 grid size-52 place-items-center rounded-full outline-none disabled:cursor-not-allowed"
+      :disabled="!micSupported || !!working"
+      @click="listening ? emit('stop') : emit('listen')"
     >
       <span v-for="ring in [0, 1, 2]" :key="ring"
             class="absolute rounded-full border border-signal-500/25 transition-all duration-500"
@@ -53,7 +60,7 @@ function pick(files: FileList | null | undefined) {
           v-if="listening" cx="88" cy="88" r="78" fill="none" stroke="#34e39b" stroke-width="2"
           stroke-linecap="round" :stroke-dasharray="CIRCUMFERENCE"
           :stroke-dashoffset="CIRCUMFERENCE * (1 - progress)"
-          class="transition-[stroke-dashoffset] duration-100 ease-linear"
+          class="transition-[stroke-dashoffset] duration-200 ease-linear"
         />
       </svg>
 
@@ -66,20 +73,37 @@ function pick(files: FileList | null | undefined) {
           <rect x="9" y="3" width="6" height="11" rx="3" />
           <path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke-linecap="round" />
         </svg>
-        <span v-else class="font-mono text-3xl tabular-nums text-signal-400">{{ remaining.toFixed(1) }}</span>
+        <span v-else class="font-mono text-3xl tabular-nums text-signal-400">{{ elapsed.toFixed(1) }}</span>
       </span>
     </button>
 
-    <h1 class="relative m-0 mt-12 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+    <h1 class="relative m-0 mt-10 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
       {{ listening ? "Listening…" : working ? working : "Play something" }}
     </h1>
-    <p class="relative m-0 mt-3 max-w-sm text-center text-sm leading-relaxed text-mist-400">
-      <template v-if="listening">Hold your device near the sound. Six seconds is enough.</template>
+
+    <div v-if="listening && live"
+         class="rise relative mt-6 w-full max-w-sm rounded-2xl border border-ink-700 bg-ink-850/80 px-5 py-4">
+      <p class="m-0 truncate text-sm font-medium">{{ live.title }}</p>
+      <p class="m-0 mt-0.5 truncate text-xs text-mist-400">{{ live.artist }}</p>
+
+      <div class="mt-3 h-1 overflow-hidden rounded-full bg-ink-700">
+        <div class="h-full rounded-full bg-signal-500 transition-[width] duration-500"
+             :style="{ width: `${certainty * 100}%` }" />
+      </div>
+
+      <p class="m-0 mt-2 flex justify-between font-mono text-[11px] text-mist-500">
+        <span>{{ live.confidence === null ? "∞" : `${live.confidence}×` }} ahead</span>
+        <span>{{ live.votes.toLocaleString() }} votes</span>
+      </p>
+    </div>
+
+    <p v-else class="relative m-0 mt-3 max-w-sm text-center text-sm leading-relaxed text-mist-400">
+      <template v-if="listening">Hold your device near the sound. Tap again to stop.</template>
       <template v-else-if="working">Fingerprinting happens here, in this tab. Only integers are sent.</template>
       <template v-else-if="!micSupported">
         No microphone available in this browser &mdash; drop an audio file instead.
       </template>
-      <template v-else>Tap to record six seconds, or drop an audio file anywhere on this screen.</template>
+      <template v-else>Tap to listen, or drop an audio file anywhere on this screen.</template>
     </p>
 
     <label v-if="!listening && !working"
@@ -90,7 +114,8 @@ function pick(files: FileList | null | undefined) {
     </label>
 
     <p class="absolute bottom-8 font-mono text-[11px] text-mist-500">
-      {{ indexed }} tracks indexed
+      <template v-if="listening && rounds">{{ rounds }} {{ rounds === 1 ? "query" : "queries" }} so far</template>
+      <template v-else>{{ indexed }} tracks indexed</template>
     </p>
   </div>
 </template>

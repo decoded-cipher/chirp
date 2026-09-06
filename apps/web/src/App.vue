@@ -5,6 +5,7 @@ import { decodeToMono } from "./audio/decode";
 import CaptureScreen from "./components/CaptureScreen.vue";
 import ResultBoard from "./components/ResultBoard.vue";
 import { runFingerprint } from "./composables/useFingerprint";
+import { useLiveIdentify, type Telemetry } from "./composables/useLiveIdentify";
 import { useMicrophone } from "./composables/useMicrophone";
 import type { FingerprintReply } from "./workers/fingerprint.worker";
 
@@ -19,10 +20,11 @@ const error = ref<string | null>(null);
 const result = ref<IdentifyResponse | null>(null);
 const print = shallowRef<FingerprintReply | null>(null);
 const pcm = shallowRef<Float32Array | null>(null);
-const telemetry = ref<{ rate: number; channels: number; duration: number; queryMs: number } | null>(null);
+const telemetry = ref<Telemetry | null>(null);
 const songs = ref<Song[]>([]);
 
-const mic = useMicrophone(6);
+const mic = useMicrophone();
+const listener = useLiveIdentify(mic);
 
 onMounted(async () => {
   try {
@@ -71,12 +73,27 @@ async function analyse(data: ArrayBuffer) {
 }
 
 async function listen() {
+  reset();
+
   try {
-    const capture = await mic.record();
-    await analyse(await capture.blob.arrayBuffer());
+    await mic.start();
   } catch {
     error.value = "Microphone unavailable or permission denied.";
+    return;
   }
+
+  const settled = await listener.run();
+  mic.stop();
+
+  if (!settled) {
+    error.value = listener.error.value ?? "Nothing matched. Move closer to the sound and try again.";
+    return;
+  }
+
+  result.value = settled.result;
+  print.value = settled.print;
+  pcm.value = settled.pcm;
+  telemetry.value = settled.telemetry;
 }
 </script>
 
@@ -90,12 +107,15 @@ async function listen() {
   <template v-else>
     <CaptureScreen
       :listening="mic.listening.value"
-      :remaining="mic.remaining.value"
+      :elapsed="mic.elapsed.value"
       :level="mic.level.value"
       :mic-supported="mic.supported"
       :working="working"
       :indexed="songs.length"
+      :live="listener.live.value"
+      :rounds="listener.rounds.value"
       @listen="listen"
+      @stop="listener.cancel"
       @file="async (f) => analyse(await f.arrayBuffer())"
     />
 
