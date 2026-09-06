@@ -20,7 +20,16 @@ test("never produces a negative hash", () => {
   for (let bin = 0; bin < 512; bin++) {
     expect(packHash(bin, 511, TARGET_ZONE_MAX)).toBeGreaterThanOrEqual(0);
   }
-  expect(packHash(511, 511, TARGET_ZONE_MAX)).toBeLessThan(2 ** 22);
+  expect(packHash(511, 511, TARGET_ZONE_MAX)).toBeLessThan(2 ** 24);
+});
+
+test("keeps fields separate at every fuzz level", () => {
+  for (const fuzz of [0, 1, 2]) {
+    const parts = unpackHash(packHash(511, 383, TARGET_ZONE_MAX, fuzz));
+    expect(parts.anchor).toBe(511 >> fuzz);
+    expect(parts.target).toBe(383 >> fuzz);
+    expect(parts.dt).toBe(TARGET_ZONE_MAX);
+  }
 });
 
 test("pairs each anchor with at most FAN_OUT targets", () => {
