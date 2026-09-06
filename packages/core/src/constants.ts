@@ -22,7 +22,7 @@ export const FREQ_FUZZ = 0;
 
 export const TARGET_ZONE_MIN = 1;
 export const TARGET_ZONE_MAX = 63;
-export const FAN_OUT = 5;
+export const FAN_OUT = 3;
 
 export const OFFSET_BUCKET = 2;
 export const MIN_VOTES = 20;
