@@ -95,7 +95,7 @@ const certainty = computed(() =>
 
     <p class="absolute bottom-8 font-mono text-[11px] text-mist-500">
       <template v-if="listening && rounds">{{ rounds }} {{ rounds === 1 ? "query" : "queries" }} so far</template>
-      <template v-else>{{ indexed }} tracks indexed</template>
+      <template v-else>{{ indexed }} {{ indexed === 1 ? "track" : "tracks" }} indexed</template>
     </p>
   </div>
 </template>

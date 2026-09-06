@@ -13,8 +13,7 @@
     {
       "binding": "DB",
       "database_name": "chirp",
-      // Replaced by the UUID from `wrangler d1 create chirp`.
-      "database_id": "PENDING_D1_CREATE",
+      "database_id": "2a42283a-0d79-42ff-9665-bb8b7be3c1cd",
       // Keys the local dev store, so it survives the id above changing.
       "preview_database_id": "local",
       "migrations_dir": "migrations"
