@@ -12,10 +12,13 @@ export const SCHEMA = [
      attribution TEXT,
      cover_url   TEXT,
      youtube_id  TEXT,
+     source      TEXT,
+     source_id   TEXT,
      isrc        TEXT,
      sha256      TEXT UNIQUE,
      created_at  INTEGER NOT NULL DEFAULT (unixepoch())
    )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS songs_source ON songs (source, source_id)`,
   `CREATE TABLE IF NOT EXISTS fingerprints (
      hash         INTEGER NOT NULL,
      song_id      INTEGER NOT NULL,
@@ -37,6 +40,8 @@ export interface SongRow {
   attribution: string | null;
   cover_url: string | null;
   youtube_id: string | null;
+  source: string | null;
+  source_id: string | null;
 }
 
 export interface HistogramRow {

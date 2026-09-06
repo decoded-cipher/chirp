@@ -49,9 +49,18 @@ LIMIT 6000`;
 
 export const INSERT_SONG = `
 INSERT INTO songs (title, artist, album, duration_s, frame_count, source_url,
-                   license, license_url, attribution, cover_url, sha256)
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+                   license, license_url, attribution, cover_url, sha256,
+                   youtube_id, source, source_id)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
 RETURNING id`;
+
+// Rows predating source_id still carry source_url.
+export const SONG_BY_SOURCE = `
+SELECT id, title, artist FROM songs
+WHERE (source = ?1 AND source_id = ?2) OR (source_url IS NOT NULL AND source_url = ?3)`;
+
+export const SONG_BY_SHA256 = `
+SELECT id, title, artist FROM songs WHERE sha256 = ?1`;
 
 export const SONGS_BY_ID = `SELECT * FROM songs WHERE id IN (SELECT value FROM json_each(?1))`;
 
