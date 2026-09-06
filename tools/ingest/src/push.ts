@@ -1,19 +1,10 @@
 import { extractPeaks, fingerprint, frameCount, spectrogram } from "@chirp/core";
 import { FINGERPRINT_CHUNK } from "@chirp/db";
+import { post } from "./api";
 import { loadCorpus, trackPath } from "./corpus";
 import { decode } from "./decode";
 
-const api = process.env.CHIRP_API ?? "http://localhost:8787";
-const token = process.env.CHIRP_TOKEN ?? "local-dev-token";
 const limit = Number(process.argv[2] ?? 6);
-
-const headers = { "content-type": "application/json", authorization: `Bearer ${token}` };
-
-async function post<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${api}${path}`, { method: "POST", headers, body: JSON.stringify(body) });
-  if (!res.ok) throw new Error(`${path} -> ${res.status} ${await res.text()}`);
-  return (await res.json()) as T;
-}
 
 const corpus = (await loadCorpus()).slice(0, limit);
 const started = performance.now();

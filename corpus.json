@@ -10,20 +10,20 @@
     "source_url": "https://archive.org/details/Qusng002MirkoAndreoli-Bn",
     "license": "CC-BY-SA-2.5",
     "license_url": "http://creativecommons.org/licenses/by-sa/2.5/it/",
-    "attribution": "Mirko Andreoli — QuSNG002 - Mirko Andreoli - B-N (CC BY-SA 2.5)"
+    "attribution": "Mirko Andreoli \u2014 QuSNG002 - Mirko Andreoli - B-N (CC BY-SA 2.5)"
   },
   {
     "file": "tracks/02-nwonkn-sp-c.mp3",
-    "title": "SPΛCΣ",
-    "artist": "nwonknυ",
-    "album": "[EE038] nwonknυ - SPΛCΣ",
+    "title": "SP\u039bC\u03a3",
+    "artist": "nwonkn\u03c5",
+    "album": "[EE038] nwonkn\u03c5 - SP\u039bC\u03a3",
     "duration_s": 150.05,
     "sample_rate": 44100,
     "channels": 2,
     "source_url": "https://archive.org/details/EE038",
     "license": "CC-BY-SA-4.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "nwonknυ — SPΛCΣ (CC BY-SA 4.0)"
+    "attribution": "nwonkn\u03c5 \u2014 SP\u039bC\u03a3 (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/03-worm-s-eye-view-days.mp3",
@@ -36,7 +36,7 @@
     "source_url": "https://archive.org/details/MARAV984C",
     "license": "PD",
     "license_url": "http://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "Worm's Eye View — Days (Public Domain Mark 1.0 1.0)"
+    "attribution": "Worm's Eye View \u2014 Days (Public Domain Mark 1.0 1.0)"
   },
   {
     "file": "tracks/04-worm-s-eye-view-the-sun-is-setting-fast.mp3",
@@ -49,7 +49,7 @@
     "source_url": "https://archive.org/details/MARAV984C",
     "license": "PD",
     "license_url": "http://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "Worm's Eye View — The Sun is Setting Fast (Public Domain Mark 1.0 1.0)"
+    "attribution": "Worm's Eye View \u2014 The Sun is Setting Fast (Public Domain Mark 1.0 1.0)"
   },
   {
     "file": "tracks/05-worm-s-eye-view-covered.mp3",
@@ -62,7 +62,7 @@
     "source_url": "https://archive.org/details/MARAV984C",
     "license": "PD",
     "license_url": "http://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "Worm's Eye View — Covered (Public Domain Mark 1.0 1.0)"
+    "attribution": "Worm's Eye View \u2014 Covered (Public Domain Mark 1.0 1.0)"
   },
   {
     "file": "tracks/06-fortnitewave-og.mp3",
@@ -75,7 +75,7 @@
     "source_url": "https://archive.org/details/BFTG_221",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "fortnitewave — og. (CC BY-SA 4.0)"
+    "attribution": "fortnitewave \u2014 og. (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/07-fortnitewave-show-them-who-we-are.mp3",
@@ -88,7 +88,7 @@
     "source_url": "https://archive.org/details/BFTG_221",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "fortnitewave — show them who we are. (CC BY-SA 4.0)"
+    "attribution": "fortnitewave \u2014 show them who we are. (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/08-fortnitewave-butter-barn-hoedown.mp3",
@@ -101,7 +101,7 @@
     "source_url": "https://archive.org/details/BFTG_221",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "fortnitewave — butter barn hoedown. (CC BY-SA 4.0)"
+    "attribution": "fortnitewave \u2014 butter barn hoedown. (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/09-fortnitewave-take-me-higher.mp3",
@@ -114,7 +114,7 @@
     "source_url": "https://archive.org/details/BFTG_221",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "fortnitewave — take me higher. (CC BY-SA 4.0)"
+    "attribution": "fortnitewave \u2014 take me higher. (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/10-2003-toyota-corolla-2017-toyota-corolla-demo.mp3",
@@ -127,7 +127,7 @@
     "source_url": "https://archive.org/details/BFTG_249",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "2003 Toyota Corolla — 2017 Toyota Corolla (Demo) (CC BY-SA 4.0)"
+    "attribution": "2003 Toyota Corolla \u2014 2017 Toyota Corolla (Demo) (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/11-2003-toyota-corolla-canon-in-d-original-crusty-mix.mp3",
@@ -140,7 +140,7 @@
     "source_url": "https://archive.org/details/BFTG_249",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "2003 Toyota Corolla — Canon in D (original crusty mix) (CC BY-SA 4.0)"
+    "attribution": "2003 Toyota Corolla \u2014 Canon in D (original crusty mix) (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/12-2003-toyota-corolla-i-am-my-own-god.mp3",
@@ -153,7 +153,7 @@
     "source_url": "https://archive.org/details/BFTG_249",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "2003 Toyota Corolla — i am my own god. (CC BY-SA 4.0)"
+    "attribution": "2003 Toyota Corolla \u2014 i am my own god. (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/13-2003-toyota-corolla-haircuts-for-men-is-a-talentless-brainless-twat.mp3",
@@ -166,7 +166,7 @@
     "source_url": "https://archive.org/details/BFTG_249",
     "license": "CC-BY-SA-4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "attribution": "2003 Toyota Corolla — haircuts for men is a talentless, brainless twat (CC BY-SA 4.0)"
+    "attribution": "2003 Toyota Corolla \u2014 haircuts for men is a talentless, brainless twat (CC BY-SA 4.0)"
   },
   {
     "file": "tracks/14-the-maravines-for-the-first-time-1.mp3",
@@ -179,7 +179,7 @@
     "source_url": "https://archive.org/details/MARAV080R",
     "license": "PD",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "the Maravines — For the First Time, 1 (Public Domain Mark 1.0 1.0)"
+    "attribution": "the Maravines \u2014 For the First Time, 1 (Public Domain Mark 1.0 1.0)"
   },
   {
     "file": "tracks/15-the-maravines-for-the-first-time-2.mp3",
@@ -192,7 +192,7 @@
     "source_url": "https://archive.org/details/MARAV080R",
     "license": "PD",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "the Maravines — For the First Time, 2 (Public Domain Mark 1.0 1.0)"
+    "attribution": "the Maravines \u2014 For the First Time, 2 (Public Domain Mark 1.0 1.0)"
   },
   {
     "file": "tracks/16-the-maravines-drum-and-sitar-pedal.mp3",
@@ -205,7 +205,7 @@
     "source_url": "https://archive.org/details/MARAV080R",
     "license": "PD",
     "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-    "attribution": "the Maravines — Drum and Sitar Pedal (Public Domain Mark 1.0 1.0)"
+    "attribution": "the Maravines \u2014 Drum and Sitar Pedal (Public Domain Mark 1.0 1.0)"
   },
   {
     "file": "tracks/17-camp-z-madame-b-from-sender-to-receiver.mp3",
@@ -218,7 +218,7 @@
     "source_url": "https://archive.org/details/VAULT059",
     "license": "CC-BY-SA-2.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/2.0/fr/",
-    "attribution": "Camp Z + Madame B — From Sender To Receiver (CC BY-SA 2.0)"
+    "attribution": "Camp Z + Madame B \u2014 From Sender To Receiver (CC BY-SA 2.0)"
   },
   {
     "file": "tracks/18-camp-z-madame-b-gimme-gimme-gimme-black-flag-cover.mp3",
@@ -231,7 +231,7 @@
     "source_url": "https://archive.org/details/VAULT059",
     "license": "CC-BY-SA-2.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/2.0/fr/",
-    "attribution": "Camp Z + Madame B — Gimme Gimme Gimme (Black Flag cover) (CC BY-SA 2.0)"
+    "attribution": "Camp Z + Madame B \u2014 Gimme Gimme Gimme (Black Flag cover) (CC BY-SA 2.0)"
   },
   {
     "file": "tracks/19-camp-z-madame-b-freedom-calling.mp3",
@@ -244,7 +244,7 @@
     "source_url": "https://archive.org/details/VAULT059",
     "license": "CC-BY-SA-2.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/2.0/fr/",
-    "attribution": "Camp Z + Madame B — Freedom Calling (CC BY-SA 2.0)"
+    "attribution": "Camp Z + Madame B \u2014 Freedom Calling (CC BY-SA 2.0)"
   },
   {
     "file": "tracks/20-camp-z-madame-b-what-is-wrong-with-you.mp3",
@@ -257,7 +257,7 @@
     "source_url": "https://archive.org/details/VAULT059",
     "license": "CC-BY-SA-2.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/2.0/fr/",
-    "attribution": "Camp Z + Madame B — What Is Wrong With You (CC BY-SA 2.0)"
+    "attribution": "Camp Z + Madame B \u2014 What Is Wrong With You (CC BY-SA 2.0)"
   },
   {
     "file": "tracks/21-mystified-with-christopher-alvarado-tokyo-remixed.mp3",
@@ -270,7 +270,7 @@
     "source_url": "https://archive.org/details/Megacities_Remixed",
     "license": "CC-BY-SA-3.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
-    "attribution": "Mystified with Christopher Alvarado — Tokyo Remixed (CC BY-SA 3.0)"
+    "attribution": "Mystified with Christopher Alvarado \u2014 Tokyo Remixed (CC BY-SA 3.0)"
   },
   {
     "file": "tracks/22-mystified-with-christopher-alvarado-guangzhou-remixed.mp3",
@@ -283,7 +283,7 @@
     "source_url": "https://archive.org/details/Megacities_Remixed",
     "license": "CC-BY-SA-3.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
-    "attribution": "Mystified with Christopher Alvarado — Guangzhou Remixed (CC BY-SA 3.0)"
+    "attribution": "Mystified with Christopher Alvarado \u2014 Guangzhou Remixed (CC BY-SA 3.0)"
   },
   {
     "file": "tracks/23-mystified-with-christopher-alvarado-shanghai-remixed.mp3",
@@ -296,6 +296,25 @@
     "source_url": "https://archive.org/details/Megacities_Remixed",
     "license": "CC-BY-SA-3.0",
     "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
-    "attribution": "Mystified with Christopher Alvarado — Shanghai Remixed (CC BY-SA 3.0)"
+    "attribution": "Mystified with Christopher Alvarado \u2014 Shanghai Remixed (CC BY-SA 3.0)"
+  },
+  {
+    "source": "youtube",
+    "source_id": "8_yqhl-BYYc",
+    "title": "Kevin MacLeod: Indore",
+    "artist": "Kevin MacLeod Archive",
+    "album": null,
+    "duration_s": 227,
+    "source_url": "https://www.youtube.com/watch?v=8_yqhl-BYYc",
+    "license": "CC-BY-3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "Kevin MacLeod Archive \u2014 Kevin MacLeod: Indore (CC-BY-3.0)",
+    "cover_url": "https://i.ytimg.com/vi_webp/8_yqhl-BYYc/maxresdefault.webp",
+    "youtube_id": "8_yqhl-BYYc",
+    "sha256": "5eb99b17dd820219a63c3a1e1a6c2878463b02847394d2b6b52ccdbdd70019f2",
+    "frame_count": 4888,
+    "sample_rate": 48000,
+    "channels": 2,
+    "file": "tracks/youtube-8_yqhl-BYYc.opus"
   }
 ]

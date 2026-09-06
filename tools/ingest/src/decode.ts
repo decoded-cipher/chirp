@@ -17,3 +17,16 @@ export async function decode(path: string, from = 0, duration?: number): Promise
   if (code !== 0) throw new Error(`ffmpeg failed on ${path}: ${stderr.trim()}`);
   return new Float32Array(buffer);
 }
+
+export async function probe(path: string): Promise<{ sample_rate: number; channels: number }> {
+  const proc = Bun.spawn([
+    "ffprobe", "-v", "error", "-select_streams", "a:0",
+    "-show_entries", "stream=sample_rate,channels", "-of", "json", path,
+  ], { stdout: "pipe", stderr: "pipe" });
+
+  const [out, code] = await Promise.all([new Response(proc.stdout).json(), proc.exited]);
+  if (code !== 0) throw new Error(`ffprobe failed on ${path}`);
+
+  const stream = (out as { streams?: { sample_rate?: string; channels?: number }[] }).streams?.[0];
+  return { sample_rate: Number(stream?.sample_rate ?? 0), channels: stream?.channels ?? 0 };
+}

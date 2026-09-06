@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 import { decide, type Fingerprint, type Identification, type Match } from "@chirp/core";
 import {
   FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, MATCH, PRUNE_HEAVY_HASHES,
-  SCHEMA, SONGS_BY_ID, type MatchRow, type SongRow,
+  SCHEMA, SONGS_BY_ID, SONG_BY_SOURCE, type MatchRow, type SongRow,
 } from "@chirp/db";
 
 export interface SongInput {
@@ -17,12 +17,29 @@ export interface SongInput {
   attribution?: string | null;
   cover_url?: string | null;
   sha256?: string | null;
+  youtube_id?: string | null;
+  source?: string | null;
+  source_id?: string | null;
+}
+
+function addMissingColumns(db: Database): void {
+  const present = new Set(
+    db.query<{ name: string }, []>("PRAGMA table_info(songs)").all().map((c) => c.name),
+  );
+  for (const column of ["source", "source_id"]) {
+    if (!present.has(column)) db.run(`ALTER TABLE songs ADD COLUMN ${column} TEXT`);
+  }
 }
 
 export function openIndex(path = ":memory:"): Database {
   const db = new Database(path, { create: true });
   db.run("PRAGMA journal_mode = WAL");
-  for (const statement of SCHEMA) db.run(statement);
+
+  const isTable = (statement: string) => statement.startsWith("CREATE TABLE");
+  for (const statement of SCHEMA.filter(isTable)) db.run(statement);
+  addMissingColumns(db);
+  for (const statement of SCHEMA.filter((s) => !isTable(s))) db.run(statement);
+
   return db;
 }
 
@@ -31,10 +48,19 @@ export function insertSong(db: Database, song: SongInput): number {
     song.title, song.artist, song.album ?? null, song.duration_s ?? null,
     song.frame_count ?? null, song.source_url ?? null, song.license ?? null,
     song.license_url ?? null, song.attribution ?? null, song.cover_url ?? null,
-    song.sha256 ?? null,
+    song.sha256 ?? null, song.youtube_id ?? null, song.source ?? null,
+    song.source_id ?? null,
   );
   if (!row) throw new Error(`failed to insert song ${song.title}`);
   return row.id;
+}
+
+export function findSongBySource(
+  db: Database, source: string, sourceId: string, sourceUrl: string,
+): { id: number; title: string } | null {
+  return db
+    .query<{ id: number; title: string }, [string, string, string]>(SONG_BY_SOURCE)
+    .get(source, sourceId, sourceUrl);
 }
 
 export function insertFingerprints(db: Database, songId: number, prints: readonly Fingerprint[]): void {
