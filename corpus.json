@@ -283,5 +283,37 @@
     "sample_rate": 48000,
     "channels": 2,
     "file": "tracks/youtube-1WgeGByWSXM.opus"
+  },
+  {
+    "source": "youtube",
+    "source_id": "rGX1Ch6OyUs",
+    "title": "Varaha Roopam / Thaye Yashoda (Live)",
+    "artist": "Anoop Sankar",
+    "album": "Morning Raga",
+    "duration_s": 337,
+    "source_url": "https://www.youtube.com/watch?v=rGX1Ch6OyUs",
+    "attribution": "Anoop Sankar \u2014 Varaha Roopam / Thaye Yashoda (Live)",
+    "cover_url": "https://i.ytimg.com/vi/rGX1Ch6OyUs/maxresdefault.jpg",
+    "youtube_id": "rGX1Ch6OyUs",
+    "frame_count": 7263,
+    "sample_rate": 48000,
+    "channels": 2,
+    "file": "tracks/youtube-rGX1Ch6OyUs.opus"
+  },
+  {
+    "source": "youtube",
+    "source_id": "y0uZABib60g",
+    "title": "Chandrachooda",
+    "artist": "Anoop Sankar",
+    "album": null,
+    "duration_s": 347,
+    "source_url": "https://www.youtube.com/watch?v=y0uZABib60g",
+    "attribution": "Anoop Sankar \u2014 Chandrachooda",
+    "cover_url": "https://i.ytimg.com/vi/y0uZABib60g/maxresdefault.jpg",
+    "youtube_id": "y0uZABib60g",
+    "frame_count": 7460,
+    "sample_rate": 48000,
+    "channels": 2,
+    "file": "tracks/youtube-y0uZABib60g.opus"
   }
 ]
