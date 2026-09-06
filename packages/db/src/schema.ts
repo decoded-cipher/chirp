@@ -39,6 +39,11 @@ export interface SongRow {
   youtube_id: string | null;
 }
 
+export interface HistogramRow {
+  offset_bucket: number;
+  votes: number;
+}
+
 export interface MatchRow {
   song_id: number;
   offset_bucket: number;

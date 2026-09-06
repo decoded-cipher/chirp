@@ -31,6 +31,22 @@ WHERE rn = 1
 ORDER BY votes DESC
 LIMIT 10`;
 
+export const HISTOGRAM = `
+WITH q(hash, qframe) AS (
+  SELECT json_extract(value, '$[0]'), json_extract(value, '$[1]')
+  FROM json_each(?1)
+)
+SELECT
+  CAST(FLOOR((f.anchor_frame - q.qframe) / ${OFFSET_BUCKET}.0) AS INTEGER) AS offset_bucket,
+  COUNT(*) AS votes
+FROM q
+JOIN fingerprints f ON f.hash = q.hash
+WHERE f.song_id = ?2
+GROUP BY offset_bucket
+HAVING offset_bucket >= 0
+ORDER BY offset_bucket
+LIMIT 6000`;
+
 export const INSERT_SONG = `
 INSERT INTO songs (title, artist, album, duration_s, frame_count, source_url,
                    license, license_url, attribution, cover_url, sha256)
