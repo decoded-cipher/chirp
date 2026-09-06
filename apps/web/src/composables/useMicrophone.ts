@@ -1,23 +1,22 @@
 import { onScopeDispose, ref } from "vue";
+import { bufferFromPcm } from "../audio/decode";
+import { Ring } from "../audio/ring";
 
-export interface Capture {
-  blob: Blob;
-  seconds: number;
-}
+const RING_SECONDS = 30;
 
-export function useMicrophone(seconds = 6) {
+export function useMicrophone() {
   const listening = ref(false);
-  const remaining = ref(seconds);
+  const elapsed = ref(0);
   const level = ref(0);
   const supported = typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
 
   let stream: MediaStream | null = null;
   let context: AudioContext | null = null;
-  let raf = 0;
+  let ring = new Ring(0);
+  let rate = 0;
 
-  function teardown() {
-    cancelAnimationFrame(raf);
-    stream?.getTracks().forEach((t) => t.stop());
+  function stop() {
+    stream?.getTracks().forEach((track) => track.stop());
     void context?.close();
     stream = null;
     context = null;
@@ -25,52 +24,43 @@ export function useMicrophone(seconds = 6) {
     level.value = 0;
   }
 
-  onScopeDispose(teardown);
+  onScopeDispose(stop);
 
-  async function record(): Promise<Capture> {
+  function append(chunk: Float32Array) {
+    ring.write(chunk);
+    elapsed.value = ring.written / rate;
+
+    let sum = 0;
+    for (const sample of chunk) sum += sample * sample;
+    level.value = level.value * 0.6 + Math.min(1, Math.sqrt(sum / chunk.length) * 6) * 0.4;
+  }
+
+  async function start() {
     stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
 
     context = new AudioContext();
-    const analyser = context.createAnalyser();
-    analyser.fftSize = 512;
-    context.createMediaStreamSource(stream).connect(analyser);
+    await context.audioWorklet.addModule(`${import.meta.env.BASE_URL}capture-worklet.js`);
 
-    const samples = new Uint8Array(analyser.frequencyBinCount);
-    const meter = () => {
-      analyser.getByteTimeDomainData(samples);
-      let sum = 0;
-      for (const s of samples) sum += (s - 128) ** 2;
-      level.value = Math.min(1, Math.sqrt(sum / samples.length) / 40);
-      raf = requestAnimationFrame(meter);
-    };
-    meter();
+    rate = context.sampleRate;
+    ring = new Ring(RING_SECONDS * rate);
+    elapsed.value = 0;
 
-    const recorder = new MediaRecorder(stream);
-    const chunks: BlobPart[] = [];
-    recorder.ondataavailable = (e) => chunks.push(e.data);
+    const node = new AudioWorkletNode(context, "capture");
+    node.port.onmessage = (event: MessageEvent<Float32Array>) => append(event.data);
+    context.createMediaStreamSource(stream).connect(node);
+
+    // Firefox stops pulling a worklet that leads nowhere, so terminate the graph
+    // at a silent gain rather than leaving the node dangling.
+    const silent = context.createGain();
+    silent.gain.value = 0;
+    node.connect(silent).connect(context.destination);
 
     listening.value = true;
-    remaining.value = seconds;
-    recorder.start();
-
-    const countdown = setInterval(() => { remaining.value = Math.max(0, remaining.value - 0.1); }, 100);
-
-    return new Promise<Capture>((resolve, reject) => {
-      recorder.onstop = () => {
-        clearInterval(countdown);
-        teardown();
-        resolve({ blob: new Blob(chunks, { type: recorder.mimeType }), seconds });
-      };
-      recorder.onerror = () => {
-        clearInterval(countdown);
-        teardown();
-        reject(new Error("recording failed"));
-      };
-      setTimeout(() => recorder.state !== "inactive" && recorder.stop(), seconds * 1000);
-    });
   }
 
-  return { listening, remaining, level, supported, record, cancel: teardown };
+  const recent = (seconds: number) => bufferFromPcm(ring.last(Math.floor(seconds * rate)), rate);
+
+  return { listening, elapsed, level, supported, start, stop, recent };
 }
