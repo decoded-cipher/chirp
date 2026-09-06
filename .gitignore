@@ -1,0 +1,14 @@
+/docs/
+
+node_modules/
+dist/
+.DS_Store
+
+.wrangler/
+.dev.vars
+.env
+.env.*
+
+tracks/
+*.sqlite
+*.sqlite-*
