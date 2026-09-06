@@ -30,10 +30,8 @@ export interface IdentifyResponse {
   histogram: { seconds: number; votes: number }[];
 }
 
-const base = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
-
 export async function identify(hashes: [number, number][]): Promise<IdentifyResponse> {
-  const res = await fetch(`${base}/api/identify`, {
+  const res = await fetch("/api/identify", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ hashes }),
@@ -43,7 +41,7 @@ export async function identify(hashes: [number, number][]): Promise<IdentifyResp
 }
 
 export async function catalogue(): Promise<Song[]> {
-  const res = await fetch(`${base}/api/songs`);
+  const res = await fetch("/api/songs");
   if (!res.ok) throw new Error(`Could not load catalogue (${res.status})`);
   return (await res.json()).songs;
 }
