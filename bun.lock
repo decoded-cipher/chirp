@@ -21,11 +21,28 @@
     "packages/core": {
       "name": "@chirp/core",
     },
+    "tools/bench": {
+      "name": "@chirp/bench",
+      "dependencies": {
+        "@chirp/core": "workspace:*",
+        "@chirp/ingest": "workspace:*",
+      },
+    },
+    "tools/ingest": {
+      "name": "@chirp/ingest",
+      "dependencies": {
+        "@chirp/core": "workspace:*",
+      },
+    },
   },
   "packages": {
     "@chirp/api": ["@chirp/api@workspace:apps/api"],
 
+    "@chirp/bench": ["@chirp/bench@workspace:tools/bench"],
+
     "@chirp/core": ["@chirp/core@workspace:packages/core"],
+
+    "@chirp/ingest": ["@chirp/ingest@workspace:tools/ingest"],
 
     "@cloudflare/kv-asset-handler": ["@cloudflare/kv-asset-handler@0.5.0", "", {}, "sha512-jxQYkj8dSIzc0cD6cMMNdOc1UVjqSqu8BZdor5s8cGjW2I8BjODt/kWPVdY+u9zj3ms75Q5qaZgnxUad83+eAg=="],
 

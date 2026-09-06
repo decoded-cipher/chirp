@@ -1,0 +1,11 @@
+{
+  "name": "@chirp/ingest",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@chirp/core": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
