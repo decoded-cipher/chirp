@@ -51,7 +51,7 @@ const album = computed(() => {
 
     <div class="grid auto-rows-min grid-cols-1 gap-3 lg:grid-cols-12">
       <BentoTile :label="match ? 'Identified' : 'No confident match'" :accent="!!match"
-                 class="lg:col-span-5" :hint="match?.license ?? undefined">
+                 class="lg:col-span-5">
         <template v-if="match">
           <h2 class="m-0 truncate text-2xl font-semibold tracking-tight">{{ match.title }}</h2>
           <p class="m-0 mt-1 truncate text-sm text-mist-400">
@@ -77,8 +77,6 @@ const album = computed(() => {
 
           <p v-if="match.attribution" class="m-0 mt-5 border-t border-ink-700 pt-3 text-[11px] leading-snug text-mist-500">
             {{ match.attribution }}
-            <a v-if="match.license_url" :href="match.license_url" target="_blank" rel="noopener noreferrer"
-               class="text-signal-500 underline underline-offset-2">licence</a>
           </p>
         </template>
 

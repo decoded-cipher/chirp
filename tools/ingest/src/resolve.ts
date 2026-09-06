@@ -6,8 +6,6 @@ export interface Resolved {
   album: string | null;
   duration_s: number;
   source_url: string;
-  license: string;
-  license_url: string | null;
   attribution: string;
   cover_url: string | null;
   youtube_id: string | null;
@@ -21,28 +19,6 @@ const ENCRYPTED = new Map([
   ["deezer.com", "Deezer"],
   ["music.amazon.com", "Amazon Music"],
 ]);
-
-const CC_PATH = /creativecommons\.org\/licenses\/([a-z-]+)\/([0-9.]+)/i;
-const PD_PATH = /creativecommons\.org\/publicdomain\/(mark|zero)\/([0-9.]+)/i;
-
-export function licenceOf(raw: string | null | undefined): { license: string; license_url: string | null } | null {
-  if (!raw) return null;
-
-  const cc = CC_PATH.exec(raw);
-  if (cc) return { license: `CC-${cc[1]!.toUpperCase()}-${cc[2]}`, license_url: raw };
-
-  const pd = PD_PATH.exec(raw);
-  if (pd) {
-    return { license: pd[1] === "zero" ? `CC0-${pd[2]}` : `PDM-${pd[2]}`, license_url: raw };
-  }
-
-  // YouTube reports a phrase, not a URL.
-  if (/creative commons/i.test(raw)) {
-    return { license: "CC-BY-3.0", license_url: "https://creativecommons.org/licenses/by/3.0/" };
-  }
-
-  return null;
-}
 
 export function rejectEncrypted(url: string): void {
   let host: string;
@@ -67,7 +43,6 @@ interface Info {
   extractor: string;
   webpage_url: string;
   duration?: number;
-  license?: string;
   creator?: string;
   artist?: string;
   uploader?: string;
@@ -88,19 +63,11 @@ async function ytdlp(args: string[]): Promise<string> {
   return out;
 }
 
-export async function resolve(url: string, anyLicence: boolean): Promise<Resolved> {
+export async function resolve(url: string): Promise<Resolved> {
   rejectEncrypted(url);
 
   const info: Info = JSON.parse(await ytdlp(["-J", "--no-warnings", "--socket-timeout", "30", url]));
   if (info._has_drm) throw new Error(`${info.webpage_url} is DRM-protected`);
-
-  const licence = licenceOf(info.license);
-  if (!licence && !anyLicence) {
-    throw new Error(
-      `no reusable licence declared on ${info.webpage_url}. ` +
-        `Pass --any-license to index it anyway.`,
-    );
-  }
 
   const source = info.extractor.toLowerCase();
   const artist = info.creator ?? info.artist ?? info.uploader ?? "Unknown";
@@ -114,9 +81,7 @@ export async function resolve(url: string, anyLicence: boolean): Promise<Resolve
     album: info.album ?? null,
     duration_s: info.duration ?? 0,
     source_url: info.webpage_url,
-    license: licence?.license ?? "unknown",
-    license_url: licence?.license_url ?? null,
-    attribution: `${artist} — ${title}${licence ? ` (${licence.license})` : ""}`,
+    attribution: `${artist} — ${title}`,
     cover_url: info.thumbnail ?? null,
     youtube_id: source === "youtube" ? info.id : null,
   };

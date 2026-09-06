@@ -3,7 +3,7 @@ import type { ApexOptions } from "apexcharts";
 import { computed } from "vue";
 import type { Candidate } from "../api";
 
-const props = defineProps<{ candidates: Candidate[]; winner: number }>();
+const props = defineProps<{ candidates: Candidate[]; winner: string }>();
 
 const rows = computed(() => props.candidates.slice(0, 6));
 const series = computed(() => [{ name: "Votes", data: rows.value.map((c) => c.votes) }]);

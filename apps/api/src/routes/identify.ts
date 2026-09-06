@@ -1,5 +1,8 @@
 import { MAX_QUERY_HASHES, decide, offsetSeconds, type Match } from "@chirp/core";
-import { HISTOGRAM, MATCH, SONGS_BY_ID, type HistogramRow, type MatchRow, type SongRow } from "@chirp/db";
+import {
+  HISTOGRAM, MATCH, SONGS_BY_ID, publicSong,
+  type HistogramRow, type MatchRow, type SongRow,
+} from "@chirp/db";
 import { Hono } from "hono";
 import type { Env } from "../env";
 
@@ -48,13 +51,13 @@ identify.post("/", async (c) => {
 
   return c.json({
     match: {
-      ...song,
+      ...publicSong(song),
       votes: chosen.votes,
       confidence: chosen.confidence === Infinity ? null : Number(chosen.confidence.toFixed(2)),
       offsetSeconds: Number(offsetSeconds(chosen.offsetBucket).toFixed(2)),
     },
     candidates: candidates.map((m) => ({
-      songId: m.songId,
+      songId: byId.get(m.songId)?.nano_id ?? null,
       title: byId.get(m.songId)?.title ?? null,
       artist: byId.get(m.songId)?.artist ?? null,
       votes: m.votes,

@@ -6,6 +6,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@chirp/core": "workspace:*"
+    "@chirp/core": "workspace:*",
+    "nanoid": "^6.0.1"
   }
 }

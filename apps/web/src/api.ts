@@ -1,11 +1,9 @@
 export interface Song {
-  id: number;
+  id: string;
   title: string;
   artist: string;
   album: string | null;
   duration_s: number | null;
-  license: string | null;
-  license_url: string | null;
   attribution: string | null;
   youtube_id: string | null;
 }
@@ -17,7 +15,7 @@ export interface MatchResult extends Song {
 }
 
 export interface Candidate {
-  songId: number;
+  songId: string | null;
   title: string | null;
   artist: string | null;
   votes: number;

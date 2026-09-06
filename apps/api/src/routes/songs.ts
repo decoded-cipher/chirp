@@ -1,6 +1,6 @@
 import {
   FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, PRUNE_HEAVY_HASHES, SONG_BY_SOURCE,
-  type SongRow,
+  newSongId, publicSong, type SongRow,
 } from "@chirp/db";
 import { Hono } from "hono";
 import type { Env } from "../env";
@@ -9,9 +9,9 @@ export const songs = new Hono<{ Bindings: Env }>();
 
 songs.get("/", async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, title, artist, album, duration_s, license, license_url, attribution, cover_url, youtube_id, source, source_id FROM songs ORDER BY artist, title",
+    "SELECT * FROM songs ORDER BY artist, title",
   ).all<SongRow>();
-  return c.json({ songs: results });
+  return c.json({ songs: results.map(publicSong) });
 });
 
 songs.get("/lookup", async (c) => {
@@ -21,7 +21,7 @@ songs.get("/lookup", async (c) => {
 
   const row = await c.env.DB.prepare(SONG_BY_SOURCE)
     .bind(source, sourceId, c.req.query("url") ?? "")
-    .first<SongRow>();
+    .first<{ id: number }>();
   return c.json({ song: row ?? null });
 });
 
@@ -51,10 +51,9 @@ songs.post("/", async (c) => {
   }
 
   const row = await c.env.DB.prepare(INSERT_SONG).bind(
-    s.title, s.artist, s.album ?? null, s.duration_s ?? null, s.frame_count ?? null,
-    s.source_url ?? null, s.license ?? null, s.license_url ?? null,
-    s.attribution ?? null, s.cover_url ?? null, s.sha256 ?? null,
-    s.youtube_id ?? null, s.source ?? null, s.source_id ?? null,
+    newSongId(), s.title, s.artist, s.album ?? null, s.duration_s ?? null,
+    s.frame_count ?? null, s.source_url ?? null, s.attribution ?? null,
+    s.cover_url ?? null, s.youtube_id ?? null, s.source ?? null, s.source_id ?? null,
   ).first<{ id: number }>();
 
   return c.json({ songId: row?.id, existing: false }, 201);

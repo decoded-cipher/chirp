@@ -4,11 +4,11 @@ import { identify } from "../api";
 import { mixNoise } from "../audio/noise";
 import { runFingerprint } from "../composables/useFingerprint";
 
-const props = defineProps<{ pcm: Float32Array; expected: number }>();
+const props = defineProps<{ pcm: Float32Array; expected: string }>();
 
 interface Trial {
   snr: number;
-  songId: number | null;
+  songId: string | null;
   confidence: number | null;
   votes: number;
   correct: boolean;

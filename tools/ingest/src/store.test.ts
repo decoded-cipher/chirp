@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { buildIndex, match, type Fingerprint } from "@chirp/core";
+import { publicSong } from "@chirp/db";
 import { insertFingerprints, insertSong, openIndex, rank, songsByIds } from "./store";
 
 function prints(hashes: number[], startFrame: number): Fingerprint[] {
@@ -54,7 +55,7 @@ test("survives a fingerprint set larger than one insert chunk", () => {
 test("round-trips song metadata", () => {
   const db = openIndex();
   const id = insertSong(db, {
-    title: "Freedom Calling", artist: "Camp Z", license: "CC-BY-SA-4.0",
+    title: "Freedom Calling", artist: "Camp Z",
     attribution: "Camp Z — Freedom Calling (CC BY-SA 4.0)",
   });
 
@@ -62,4 +63,19 @@ test("round-trips song metadata", () => {
   expect(row!.title).toBe("Freedom Calling");
   expect(row!.attribution).toBe("Camp Z — Freedom Calling (CC BY-SA 4.0)");
   expect(row!.album).toBeNull();
+});
+
+test("gives every song its own nano id and keeps the row id private", () => {
+  const db = openIndex();
+  const a = insertSong(db, { title: "a", artist: "test" });
+  const b = insertSong(db, { title: "b", artist: "test" });
+
+  const [rowA, rowB] = songsByIds(db, [a, b]);
+  expect(rowA!.nano_id).not.toBe(rowB!.nano_id);
+  expect(rowA!.nano_id).toHaveLength(21);
+
+  const shared = publicSong(rowA!);
+  expect(shared.id).toBe(rowA!.nano_id);
+  expect(shared).not.toHaveProperty("nano_id");
+  expect(Object.values(shared)).not.toContain(rowA!.id);
 });

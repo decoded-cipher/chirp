@@ -13,7 +13,6 @@ chirp add — index a track from a URL
 
   --push             write to the API (D1) instead of the local index
   --db <path>        local index to write (default chirp.sqlite)
-  --any-license      index even when no reusable licence is declared
 
 Works with anything yt-dlp supports: YouTube, SoundCloud, Bandcamp,
 archive.org, Vimeo, Mixcloud, direct audio URLs. Spotify and Apple Music
@@ -34,7 +33,6 @@ if (urls.length === 0) {
 }
 
 const push = flag("push");
-const anyLicence = flag("any-license");
 const dbPath = option("db") ?? "chirp.sqlite";
 const db = push ? null : openIndex(dbPath);
 
@@ -45,7 +43,7 @@ let added = 0;
 
 for (const url of urls) {
   try {
-    const meta = await resolve(url, anyLicence);
+    const meta = await resolve(url);
     const label = `${meta.artist} — ${meta.title}`;
 
     const existing = db
@@ -61,12 +59,9 @@ for (const url of urls) {
     }
 
     const file = await download(url, `${ROOT}/tracks`, `${meta.source}-${meta.source_id}`);
-    const bytes = await Bun.file(file).arrayBuffer();
-    const sha256 = new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
-
     const pcm = await decode(file);
     const prints = fingerprint(extractPeaks(spectrogram(pcm)));
-    const song = { ...meta, sha256, frame_count: frameCount(pcm.length) };
+    const song = { ...meta, frame_count: frameCount(pcm.length) };
 
     let songId: number;
     if (db) {
@@ -86,7 +81,7 @@ for (const url of urls) {
     if (!listed) corpus.push({ ...song, ...(await probe(file)), file: relative });
     added++;
 
-    console.log(`  + ${label}  song ${songId}, ${prints.length.toLocaleString()} hashes  [${meta.source} ${meta.license}]`);
+    console.log(`  + ${label}  song ${songId}, ${prints.length.toLocaleString()} hashes  [${meta.source}]`);
   } catch (e) {
     console.error(`  ! ${url}\n    ${(e as Error).message}`);
   }

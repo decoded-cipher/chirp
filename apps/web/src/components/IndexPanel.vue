@@ -27,9 +27,6 @@ const shown = computed(() => {
           class="flex items-center gap-4 border-b border-ink-800 px-4 py-2.5 text-sm last:border-0">
         <span class="w-44 shrink-0 truncate text-mist-400">{{ song.artist }}</span>
         <span class="min-w-0 flex-1 truncate text-mist-50">{{ song.title }}</span>
-        <span class="shrink-0 rounded border border-ink-600 px-1.5 py-0.5 font-mono text-[10px] text-mist-500">
-          {{ song.license }}
-        </span>
       </li>
     </ul>
   </div>

@@ -9,14 +9,11 @@ export interface CorpusTrack {
   sample_rate: number;
   channels: number;
   source_url: string;
-  license: string;
-  license_url: string | null;
   attribution: string;
   cover_url?: string | null;
   source?: string | null;
   source_id?: string | null;
   youtube_id?: string | null;
-  sha256?: string | null;
   frame_count?: number;
 }
 

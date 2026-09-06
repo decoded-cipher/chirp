@@ -1,21 +1,21 @@
+import { nanoid } from "nanoid";
+
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS songs (
      id          INTEGER PRIMARY KEY,
+     nano_id     TEXT NOT NULL UNIQUE,
      title       TEXT NOT NULL,
      artist      TEXT NOT NULL,
      album       TEXT,
      duration_s  REAL,
      frame_count INTEGER,
      source_url  TEXT,
-     license     TEXT,
-     license_url TEXT,
      attribution TEXT,
      cover_url   TEXT,
      youtube_id  TEXT,
      source      TEXT,
      source_id   TEXT,
      isrc        TEXT,
-     sha256      TEXT UNIQUE,
      created_at  INTEGER NOT NULL DEFAULT (unixepoch())
    )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS songs_source ON songs (source, source_id)`,
@@ -27,21 +27,30 @@ export const SCHEMA = [
    ) WITHOUT ROWID`,
 ];
 
+export const newSongId = (): string => nanoid();
+
 export interface SongRow {
   id: number;
+  nano_id: string;
   title: string;
   artist: string;
   album: string | null;
   duration_s: number | null;
   frame_count: number | null;
   source_url: string | null;
-  license: string | null;
-  license_url: string | null;
   attribution: string | null;
   cover_url: string | null;
   youtube_id: string | null;
   source: string | null;
   source_id: string | null;
+}
+
+export interface PublicSong extends Omit<SongRow, "id" | "nano_id"> {
+  id: string;
+}
+
+export function publicSong({ id: _rowid, nano_id, ...rest }: SongRow): PublicSong {
+  return { id: nano_id, ...rest };
 }
 
 export interface HistogramRow {
