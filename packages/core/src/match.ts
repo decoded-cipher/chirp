@@ -32,8 +32,8 @@ export function buildIndex(songs: Iterable<readonly [number, readonly Fingerprin
   return index;
 }
 
-export function match(index: Index, query: readonly Fingerprint[]): Match[] {
-  const tally = new Map<number, Map<number, number>>();
+export function tally(index: Index, query: readonly Fingerprint[]): Match[] {
+  const counts = new Map<number, Map<number, number>>();
 
   for (const { hash, frame } of query) {
     const postings = index.get(hash);
@@ -44,29 +44,48 @@ export function match(index: Index, query: readonly Fingerprint[]): Match[] {
       if (delta < 0) continue;
 
       const bucket = Math.floor(delta / OFFSET_BUCKET);
-      let buckets = tally.get(posting.songId);
+      let buckets = counts.get(posting.songId);
       if (!buckets) {
         buckets = new Map();
-        tally.set(posting.songId, buckets);
+        counts.set(posting.songId, buckets);
       }
       buckets.set(bucket, (buckets.get(bucket) ?? 0) + 1);
     }
   }
 
-  const matches: Match[] = [];
-  for (const [songId, buckets] of tally) {
-    let offsetBucket = 0;
-    let votes = 0;
-    for (const [bucket, count] of buckets) {
-      if (count > votes) {
-        votes = count;
-        offsetBucket = bucket;
-      }
-    }
-    if (votes >= MIN_VOTES) matches.push({ songId, offsetBucket, votes });
+  const rows: Match[] = [];
+  for (const [songId, buckets] of counts) {
+    for (const [offsetBucket, votes] of buckets) rows.push({ songId, offsetBucket, votes });
+  }
+  return rows.sort((a, b) => b.votes - a.votes);
+}
+
+export function mergeTallies(previous: readonly Match[], next: readonly Match[]): Match[] {
+  const totals = new Map<string, Match>();
+
+  for (const row of [...previous, ...next]) {
+    const key = `${row.songId}:${row.offsetBucket}`;
+    const seen = totals.get(key);
+    if (seen) seen.votes += row.votes;
+    else totals.set(key, { ...row });
   }
 
-  return matches.sort((a, b) => b.votes - a.votes);
+  return [...totals.values()].sort((a, b) => b.votes - a.votes);
+}
+
+export function bestPerSong(rows: readonly Match[]): Match[] {
+  const best = new Map<number, Match>();
+
+  for (const row of rows) {
+    const seen = best.get(row.songId);
+    if (!seen || row.votes > seen.votes) best.set(row.songId, row);
+  }
+
+  return [...best.values()].sort((a, b) => b.votes - a.votes);
+}
+
+export function match(index: Index, query: readonly Fingerprint[]): Match[] {
+  return bestPerSong(tally(index, query)).filter((m) => m.votes >= MIN_VOTES);
 }
 
 export function decide(ranked: readonly Match[]): Identification | null {

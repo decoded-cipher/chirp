@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { FRAME_DURATION, MIN_VOTES, OFFSET_BUCKET } from "./constants";
 import type { Fingerprint } from "./hash";
-import { buildIndex, identify, match, offsetSeconds } from "./match";
+import { bestPerSong, buildIndex, identify, match, mergeTallies, offsetSeconds, tally } from "./match";
 
 function prints(hashes: number[], startFrame: number): Fingerprint[] {
   return hashes.map((hash, i) => ({ hash, frame: startFrame + i }));
@@ -65,4 +65,30 @@ test("refuses to identify when no candidate stands out", () => {
 test("converts an offset bucket to seconds", () => {
   expect(offsetSeconds(250)).toBeCloseTo(250 * OFFSET_BUCKET * FRAME_DURATION, 10);
   expect(offsetSeconds(250)).toBeCloseTo(23.22, 2);
+});
+
+test("splitting a query across rounds tallies the same as sending it whole", () => {
+  const index = buildIndex([
+    [1, [...prints(HASHES, 500), ...prints(HASHES.slice(0, 40), 900)]],
+    [2, prints(HASHES.slice(0, 25), 300)],
+  ]);
+
+  const whole = prints(HASHES, 0);
+  const rounds = [whole.slice(0, 20), whole.slice(20, 45), whole.slice(45)];
+
+  const incremental = rounds
+    .map((round) => tally(index, round))
+    .reduce((carried, round) => mergeTallies(carried, round));
+
+  expect(bestPerSong(incremental)).toEqual(bestPerSong(tally(index, whole)));
+});
+
+test("merging tallies sums votes for a shared alignment", () => {
+  expect(mergeTallies(
+    [{ songId: 1, offsetBucket: 250, votes: 12 }],
+    [{ songId: 1, offsetBucket: 250, votes: 8 }, { songId: 2, offsetBucket: 4, votes: 5 }],
+  )).toEqual([
+    { songId: 1, offsetBucket: 250, votes: 20 },
+    { songId: 2, offsetBucket: 4, votes: 5 },
+  ]);
 });
