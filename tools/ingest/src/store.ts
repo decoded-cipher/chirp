@@ -1,9 +1,9 @@
 import { Database } from "bun:sqlite";
 import { decide, type Fingerprint, type Identification, type Match } from "@chirp/core";
 import {
-  CLEAR_HASH_STATS, FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, MATCH,
-  MAX_POSTINGS_PER_HASH, REFRESH_HASH_STATS, SCHEMA, SONGS_BY_ID, SONG_BY_SOURCE,
-  newSongId, type MatchRow, type SongRow,
+  CANDIDATES, CANDIDATE_SONGS, CLEAR_HASH_STATS, FINGERPRINT_CHUNK, INSERT_FINGERPRINTS,
+  INSERT_SONG, MATCH, MAX_POSTINGS_PER_HASH, REFRESH_HASH_STATS, SCHEMA, SONGS_BY_ID,
+  SONG_BY_SOURCE, VERIFY, newSongId, type MatchRow, type SongRow,
 } from "@chirp/db";
 
 export interface SongInput {
@@ -63,19 +63,39 @@ export function refreshHashStats(db: Database): number {
   return db.query<{ n: number }, []>("SELECT COUNT(*) n FROM hash_stats").get()!.n;
 }
 
+const toRows = (rows: MatchRow[]): Match[] =>
+  rows.map((r) => ({ songId: r.song_id, offsetBucket: r.offset_bucket, votes: r.votes }));
+
 export function rank(
   db: Database, query: readonly Fingerprint[], cap = MAX_POSTINGS_PER_HASH,
 ): Match[] {
   const pairs = JSON.stringify(query.map((p) => [p.hash, p.frame]));
-  return db.query<MatchRow, [string, number]>(MATCH).all(pairs, cap).map((r) => ({
-    songId: r.song_id,
-    offsetBucket: r.offset_bucket,
-    votes: r.votes,
-  }));
+  return toRows(db.query<MatchRow, [string, number]>(MATCH).all(pairs, cap));
+}
+
+export function rankTwoStage(
+  db: Database, query: readonly Fingerprint[],
+  cap = MAX_POSTINGS_PER_HASH, keep = CANDIDATE_SONGS,
+): Match[] {
+  const pairs = JSON.stringify(query.map((p) => [p.hash, p.frame]));
+  const candidates = db
+    .query<{ song_id: number }, [string, number]>(CANDIDATES)
+    .all(pairs, keep)
+    .map((r) => r.song_id);
+
+  if (candidates.length === 0) return [];
+  return toRows(
+    db.query<MatchRow, [string, string, number]>(VERIFY)
+      .all(pairs, JSON.stringify(candidates), cap),
+  );
 }
 
 export function identifyIn(db: Database, query: readonly Fingerprint[]): Identification | null {
   return decide(rank(db, query));
+}
+
+export function identifyTwoStage(db: Database, query: readonly Fingerprint[]): Identification | null {
+  return decide(rankTwoStage(db, query));
 }
 
 export function songsByIds(db: Database, ids: readonly number[]): SongRow[] {

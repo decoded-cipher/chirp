@@ -1,6 +1,7 @@
 import { MAX_QUERY_HASHES, decide, offsetSeconds, type Match } from "@chirp/core";
 import {
-  HISTOGRAM, MATCH, MAX_POSTINGS_PER_HASH, SONGS_BY_ID, publicSong,
+  CANDIDATES, CANDIDATE_SONGS, HISTOGRAM, MATCH, MAX_POSTINGS_PER_HASH, SONGS_BY_ID,
+  SONG_COUNT, TWO_STAGE_MIN_SONGS, VERIFY, publicSong,
   type HistogramRow, type MatchRow, type SongRow,
 } from "@chirp/db";
 import { Hono } from "hono";
@@ -29,8 +30,13 @@ identify.post("/", async (c) => {
   }
   if (pairs.length === 0) return c.json({ error: "no valid [hash, frame] pairs" }, 400);
 
-  const ranked = await c.env.DB.prepare(MATCH)
-    .bind(JSON.stringify(pairs), MAX_POSTINGS_PER_HASH).all<MatchRow>();
+  const query = JSON.stringify(pairs);
+  const counted = await c.env.DB.prepare(SONG_COUNT).first<{ n: number }>();
+  const scan = (counted?.n ?? 0) < TWO_STAGE_MIN_SONGS
+    ? c.env.DB.prepare(MATCH).bind(query, MAX_POSTINGS_PER_HASH).all<MatchRow>()
+    : narrow(c.env.DB, query);
+
+  const ranked = await scan;
   const candidates: Match[] = ranked.results.map((r) => ({
     songId: r.song_id,
     offsetBucket: r.offset_bucket,
@@ -44,7 +50,7 @@ identify.post("/", async (c) => {
   const [songs, histogram] = await Promise.all([
     c.env.DB.prepare(SONGS_BY_ID).bind(JSON.stringify(ids)).all<SongRow>(),
     c.env.DB.prepare(HISTOGRAM)
-      .bind(JSON.stringify(pairs), chosen.songId, MAX_POSTINGS_PER_HASH).all<HistogramRow>(),
+      .bind(query, chosen.songId, MAX_POSTINGS_PER_HASH).all<HistogramRow>(),
   ]);
 
   const byId = new Map(songs.results.map((s) => [s.id, s]));
@@ -71,3 +77,13 @@ identify.post("/", async (c) => {
     })),
   });
 });
+
+async function narrow(db: D1Database, query: string) {
+  const found = await db.prepare(CANDIDATES).bind(query, CANDIDATE_SONGS).all<{ song_id: number }>();
+  const ids = found.results.map((r) => r.song_id);
+  if (ids.length === 0) return { results: [] as MatchRow[] };
+
+  return db.prepare(VERIFY)
+    .bind(query, JSON.stringify(ids), MAX_POSTINGS_PER_HASH)
+    .all<MatchRow>();
+}
