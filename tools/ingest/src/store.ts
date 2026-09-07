@@ -1,8 +1,9 @@
 import { Database } from "bun:sqlite";
 import { decide, type Fingerprint, type Identification, type Match } from "@chirp/core";
 import {
-  FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, MATCH, PRUNE_HEAVY_HASHES,
-  SCHEMA, SONGS_BY_ID, SONG_BY_SOURCE, newSongId, type MatchRow, type SongRow,
+  CLEAR_HASH_STATS, FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, MATCH,
+  MAX_POSTINGS_PER_HASH, REFRESH_HASH_STATS, SCHEMA, SONGS_BY_ID, SONG_BY_SOURCE,
+  newSongId, type MatchRow, type SongRow,
 } from "@chirp/db";
 
 export interface SongInput {
@@ -56,15 +57,17 @@ export function insertFingerprints(db: Database, songId: number, prints: readonl
   }
 }
 
-export function pruneIndex(db: Database): number {
-  const before = db.query<{ n: number }, []>("SELECT COUNT(*) n FROM fingerprints").get()!.n;
-  db.run(PRUNE_HEAVY_HASHES);
-  return before - db.query<{ n: number }, []>("SELECT COUNT(*) n FROM fingerprints").get()!.n;
+export function refreshHashStats(db: Database): number {
+  db.run(CLEAR_HASH_STATS);
+  db.run(REFRESH_HASH_STATS);
+  return db.query<{ n: number }, []>("SELECT COUNT(*) n FROM hash_stats").get()!.n;
 }
 
-export function rank(db: Database, query: readonly Fingerprint[]): Match[] {
+export function rank(
+  db: Database, query: readonly Fingerprint[], cap = MAX_POSTINGS_PER_HASH,
+): Match[] {
   const pairs = JSON.stringify(query.map((p) => [p.hash, p.frame]));
-  return db.query<MatchRow, [string]>(MATCH).all(pairs).map((r) => ({
+  return db.query<MatchRow, [string, number]>(MATCH).all(pairs, cap).map((r) => ({
     songId: r.song_id,
     offsetBucket: r.offset_bucket,
     votes: r.votes,

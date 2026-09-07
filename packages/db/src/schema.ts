@@ -25,6 +25,10 @@ export const SCHEMA = [
      anchor_frame INTEGER NOT NULL,
      PRIMARY KEY (hash, song_id, anchor_frame)
    ) WITHOUT ROWID`,
+  `CREATE TABLE IF NOT EXISTS hash_stats (
+     hash     INTEGER PRIMARY KEY,
+     postings INTEGER NOT NULL
+   ) WITHOUT ROWID`,
 ];
 
 export const newSongId = (): string => nanoid();

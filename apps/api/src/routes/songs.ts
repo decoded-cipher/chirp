@@ -1,5 +1,6 @@
 import {
-  FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, PRUNE_HEAVY_HASHES, SONG_BY_SOURCE,
+  CLEAR_HASH_STATS, FINGERPRINT_CHUNK, INSERT_FINGERPRINTS, INSERT_SONG, REFRESH_HASH_STATS,
+  SONG_BY_SOURCE,
   newSongId, publicSong, type SongRow,
 } from "@chirp/db";
 import { Hono } from "hono";
@@ -74,7 +75,11 @@ songs.post("/:id/fingerprints", async (c) => {
   return c.json({ inserted: hashes.length });
 });
 
-songs.post("/prune", async (c) => {
-  const result = await c.env.DB.prepare(PRUNE_HEAVY_HASHES).run();
-  return c.json({ pruned: result.meta.changes });
+songs.post("/stats", async (c) => {
+  await c.env.DB.batch([
+    c.env.DB.prepare(CLEAR_HASH_STATS),
+    c.env.DB.prepare(REFRESH_HASH_STATS),
+  ]);
+  const row = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM hash_stats").first<{ n: number }>();
+  return c.json({ heavy: row?.n ?? 0 });
 });

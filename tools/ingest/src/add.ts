@@ -4,7 +4,7 @@ import { get, post } from "./api";
 import { ROOT, type CorpusTrack } from "./corpus";
 import { decode, probe } from "./decode";
 import { download, resolve } from "./resolve";
-import { findSongBySource, insertFingerprints, insertSong, openIndex, pruneIndex } from "./store";
+import { findSongBySource, insertFingerprints, insertSong, openIndex, refreshHashStats } from "./store";
 
 const USAGE = `
 chirp add — index a track from a URL
@@ -90,8 +90,8 @@ for (const url of urls) {
 if (added > 0) {
   await Bun.write(corpusPath, `${JSON.stringify(corpus, null, 2)}\n`);
 
-  const pruned = db ? pruneIndex(db) : (await post<{ pruned: number }>("/api/songs/prune", {})).pruned;
-  console.log(`\nadded ${added} of ${urls.length}, pruned ${pruned.toLocaleString()} postings`);
+  const heavy = db ? refreshHashStats(db) : (await post<{ heavy: number }>("/api/songs/stats", {})).heavy;
+  console.log(`\nadded ${added} of ${urls.length}, ${heavy.toLocaleString()} hashes flagged too common`);
 } else {
   console.log(`\nnothing added`);
 }

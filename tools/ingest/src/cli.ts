@@ -1,7 +1,7 @@
 import { extractPeaks, fingerprint, frameCount, spectrogram } from "@chirp/core";
 import { loadCorpus, trackPath } from "./corpus";
 import { decode } from "./decode";
-import { insertFingerprints, insertSong, openIndex, pruneIndex } from "./store";
+import { insertFingerprints, insertSong, openIndex, refreshHashStats } from "./store";
 
 const target = process.argv[2] ?? "chirp.sqlite";
 const limit = Number(process.argv[3] ?? Infinity);
@@ -26,7 +26,7 @@ for (const [i, track] of corpus.entries()) {
   );
 }
 
-const pruned = pruneIndex(db);
+const heavy = refreshHashStats(db);
 db.run("VACUUM");
 
 const elapsed = (performance.now() - started) / 1000;
@@ -38,4 +38,4 @@ console.log(
     `${(bytes / 1e6).toFixed(1)} MB (${Math.round(bytes / corpus.length / 1024)} KB/track), ` +
     `${totalHashes.toLocaleString()} hashes in ${elapsed.toFixed(1)}s`,
 );
-console.log(`pruned ${pruned.toLocaleString()} postings from hashes too common to identify anything`);
+console.log(`${heavy.toLocaleString()} hashes flagged too common to identify anything (skipped at query time, not deleted)`);

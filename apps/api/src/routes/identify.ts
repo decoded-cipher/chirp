@@ -1,6 +1,6 @@
 import { MAX_QUERY_HASHES, decide, offsetSeconds, type Match } from "@chirp/core";
 import {
-  HISTOGRAM, MATCH, SONGS_BY_ID, publicSong,
+  HISTOGRAM, MATCH, MAX_POSTINGS_PER_HASH, SONGS_BY_ID, publicSong,
   type HistogramRow, type MatchRow, type SongRow,
 } from "@chirp/db";
 import { Hono } from "hono";
@@ -29,7 +29,8 @@ identify.post("/", async (c) => {
   }
   if (pairs.length === 0) return c.json({ error: "no valid [hash, frame] pairs" }, 400);
 
-  const ranked = await c.env.DB.prepare(MATCH).bind(JSON.stringify(pairs)).all<MatchRow>();
+  const ranked = await c.env.DB.prepare(MATCH)
+    .bind(JSON.stringify(pairs), MAX_POSTINGS_PER_HASH).all<MatchRow>();
   const candidates: Match[] = ranked.results.map((r) => ({
     songId: r.song_id,
     offsetBucket: r.offset_bucket,
@@ -42,7 +43,8 @@ identify.post("/", async (c) => {
   const ids = candidates.map((m) => m.songId);
   const [songs, histogram] = await Promise.all([
     c.env.DB.prepare(SONGS_BY_ID).bind(JSON.stringify(ids)).all<SongRow>(),
-    c.env.DB.prepare(HISTOGRAM).bind(JSON.stringify(pairs), chosen.songId).all<HistogramRow>(),
+    c.env.DB.prepare(HISTOGRAM)
+      .bind(JSON.stringify(pairs), chosen.songId, MAX_POSTINGS_PER_HASH).all<HistogramRow>(),
   ]);
 
   const byId = new Map(songs.results.map((s) => [s.id, s]));
