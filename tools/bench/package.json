@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@chirp/core": "workspace:*",
-    "@chirp/ingest": "workspace:*"
+    "@chirp/ingest": "workspace:*",
+    "@chirp/db": "workspace:*"
   }
 }

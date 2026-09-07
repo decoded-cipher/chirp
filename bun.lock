@@ -51,6 +51,7 @@
       "name": "@chirp/bench",
       "dependencies": {
         "@chirp/core": "workspace:*",
+        "@chirp/db": "workspace:*",
         "@chirp/ingest": "workspace:*",
       },
     },
