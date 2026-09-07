@@ -22,17 +22,22 @@ export interface Candidate {
   offsetSeconds: number;
 }
 
+export type Tally = [songId: number, offsetBucket: number, votes: number][];
+
 export interface IdentifyResponse {
   match: MatchResult | null;
   candidates: Candidate[];
   histogram: { seconds: number; votes: number }[];
+  tally: Tally;
 }
 
-export async function identify(hashes: [number, number][]): Promise<IdentifyResponse> {
+export async function identify(
+  hashes: [number, number][], carry?: Tally,
+): Promise<IdentifyResponse> {
   const res = await fetch("/api/identify", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ hashes }),
+    body: JSON.stringify(carry ? { hashes, carry } : { hashes }),
   });
   if (!res.ok) throw new Error(`Identification failed (${res.status})`);
   return res.json();

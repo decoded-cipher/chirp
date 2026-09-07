@@ -1,12 +1,12 @@
 import { ref } from "vue";
-import { identify, type IdentifyResponse } from "../api";
+import { identify, type IdentifyResponse, type Tally } from "../api";
 import { renderMono } from "../audio/decode";
 import type { FingerprintReply } from "../workers/fingerprint.worker";
 import { runFingerprint } from "./useFingerprint";
 import type { useMicrophone } from "./useMicrophone";
 
 export const LISTEN = {
-  window: 6,
+  window: 24,
   firstQueryAt: 3,
   interval: 1.5,
   maxSeconds: 24,
@@ -18,6 +18,7 @@ export interface Telemetry {
   channels: number;
   duration: number;
   queryMs: number;
+  sentHashes: number;
 }
 
 export interface Round {
@@ -34,7 +35,15 @@ export interface Live {
   confidence: number | null;
 }
 
+interface Session {
+  sent: Set<number>;
+  histogram: Map<number, number>;
+  carry: Tally;
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const key = (hash: number, frame: number) => hash * 65536 + frame;
 
 export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
   const live = ref<Live | null>(null);
@@ -43,23 +52,39 @@ export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
 
   let cancelled = false;
 
-  async function analyseWindow(): Promise<Round> {
+  async function analyse(session: Session): Promise<Round | null> {
     const buffer = mic.recent(Math.min(mic.elapsed.value, LISTEN.window));
     const pcm = await renderMono(buffer);
     const print = await runFingerprint(pcm);
 
+    const fresh = print.hashes.filter(([hash, frame]) => !session.sent.has(key(hash, frame)));
+    if (fresh.length === 0) return null;
+    for (const [hash, frame] of fresh) session.sent.add(key(hash, frame));
+
     const started = performance.now();
-    const result = await identify(print.hashes);
+    const result = await identify(fresh, session.carry);
+    const queryMs = performance.now() - started;
+
+    session.carry = result.tally;
+    for (const point of result.histogram) {
+      session.histogram.set(point.seconds, (session.histogram.get(point.seconds) ?? 0) + point.votes);
+    }
 
     return {
-      result,
+      result: {
+        ...result,
+        histogram: [...session.histogram]
+          .map(([seconds, votes]) => ({ seconds, votes }))
+          .sort((a, b) => a.seconds - b.seconds),
+      },
       print,
       pcm,
       telemetry: {
         rate: buffer.sampleRate,
         channels: 1,
         duration: buffer.duration,
-        queryMs: performance.now() - started,
+        queryMs,
+        sentHashes: fresh.length,
       },
     };
   }
@@ -70,6 +95,7 @@ export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
     rounds.value = 0;
     error.value = null;
 
+    const session: Session = { sent: new Set(), histogram: new Map(), carry: [] };
     let best: Round | null = null;
     let nextAt = LISTEN.firstQueryAt;
 
@@ -79,9 +105,9 @@ export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
         continue;
       }
 
-      let round: Round;
+      let round: Round | null;
       try {
-        round = await analyseWindow();
+        round = await analyse(session);
       } catch (e) {
         // The next window may carry cleaner audio than the one that failed.
         error.value = (e as Error).message;
@@ -89,11 +115,14 @@ export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
         continue;
       }
 
+      nextAt = mic.elapsed.value + LISTEN.interval;
+      if (!round) continue;
+
       rounds.value++;
       const match = round.result.match;
 
       if (match) {
-        if (!best || match.votes > best.result.match!.votes) best = round;
+        best = round;
         live.value = {
           title: match.title,
           artist: match.artist,
@@ -102,8 +131,6 @@ export function useLiveIdentify(mic: ReturnType<typeof useMicrophone>) {
         };
         if ((match.confidence ?? Infinity) >= LISTEN.settleMargin) return round;
       }
-
-      nextAt = mic.elapsed.value + LISTEN.interval;
     }
 
     return best;

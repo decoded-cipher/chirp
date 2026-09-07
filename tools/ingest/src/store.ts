@@ -1,9 +1,9 @@
 import { Database } from "bun:sqlite";
-import { decide, type Fingerprint, type Identification, type Match } from "@chirp/core";
+import { MIN_VOTES, decide, type Fingerprint, type Identification, type Match } from "@chirp/core";
 import {
   CANDIDATES, CANDIDATE_SONGS, CLEAR_HASH_STATS, FINGERPRINT_CHUNK, INSERT_FINGERPRINTS,
-  INSERT_SONG, MATCH, MAX_POSTINGS_PER_HASH, REFRESH_HASH_STATS, SCHEMA, SONGS_BY_ID,
-  SONG_BY_SOURCE, VERIFY, newSongId, type MatchRow, type SongRow,
+  INSERT_SONG, MATCH, MAX_POSTINGS_PER_HASH, RANKED_LIMIT, REFRESH_HASH_STATS, SCHEMA,
+  SONGS_BY_ID, SONG_BY_SOURCE, VERIFY, newSongId, type MatchRow, type SongRow,
 } from "@chirp/db";
 
 export interface SongInput {
@@ -70,7 +70,10 @@ export function rank(
   db: Database, query: readonly Fingerprint[], cap = MAX_POSTINGS_PER_HASH,
 ): Match[] {
   const pairs = JSON.stringify(query.map((p) => [p.hash, p.frame]));
-  return toRows(db.query<MatchRow, [string, number]>(MATCH).all(pairs, cap));
+  return toRows(
+    db.query<MatchRow, [string, number, number, number]>(MATCH)
+      .all(pairs, cap, MIN_VOTES, RANKED_LIMIT),
+  );
 }
 
 export function rankTwoStage(
@@ -85,8 +88,8 @@ export function rankTwoStage(
 
   if (candidates.length === 0) return [];
   return toRows(
-    db.query<MatchRow, [string, string, number]>(VERIFY)
-      .all(pairs, JSON.stringify(candidates), cap),
+    db.query<MatchRow, [string, string, number, number, number]>(VERIFY)
+      .all(pairs, JSON.stringify(candidates), cap, MIN_VOTES, RANKED_LIMIT),
   );
 }
 

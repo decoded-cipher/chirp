@@ -1,4 +1,4 @@
-import { MIN_VOTES, OFFSET_BUCKET } from "@chirp/core";
+import { OFFSET_BUCKET } from "@chirp/core";
 
 export const INSERT_FINGERPRINTS = `
 INSERT OR IGNORE INTO fingerprints (hash, song_id, anchor_frame)
@@ -23,7 +23,7 @@ tally AS (
   FROM kept
   JOIN fingerprints f ON f.hash = kept.hash
   GROUP BY f.song_id, offset_bucket
-  HAVING votes >= ${MIN_VOTES} AND offset_bucket >= 0
+  HAVING votes >= ?3 AND offset_bucket >= 0
 ),
 best AS (
   SELECT song_id, offset_bucket, votes,
@@ -34,7 +34,7 @@ SELECT song_id, offset_bucket, votes
 FROM best
 WHERE rn = 1
 ORDER BY votes DESC
-LIMIT 10`;
+LIMIT ?4`;
 
 export const CANDIDATES = `
 WITH q(hash, qframe) AS (
@@ -84,7 +84,7 @@ tally AS (
   CROSS JOIN cand
   JOIN fingerprints f ON f.hash = kept.hash AND f.song_id = cand.song_id
   GROUP BY f.song_id, offset_bucket
-  HAVING votes >= ${MIN_VOTES} AND offset_bucket >= 0
+  HAVING votes >= ?4 AND offset_bucket >= 0
 ),
 best AS (
   SELECT song_id, offset_bucket, votes,
@@ -95,7 +95,7 @@ SELECT song_id, offset_bucket, votes
 FROM best
 WHERE rn = 1
 ORDER BY votes DESC
-LIMIT 10`;
+LIMIT ?5`;
 
 export const HISTOGRAM = `
 WITH q(hash, qframe) AS (
@@ -140,6 +140,12 @@ export const MAX_POSTINGS_PER_HASH = 512;
 export const CANDIDATE_SONGS = 20;
 
 export const TWO_STAGE_MIN_SONGS = 200;
+
+export const RANKED_LIMIT = 10;
+
+export const CARRY_VOTE_FLOOR = 3;
+
+export const CARRY_LIMIT = 50;
 
 export const SONG_COUNT = `SELECT COUNT(*) AS n FROM songs`;
 
