@@ -1,8 +1,8 @@
 import { extractPeaks, fingerprint, frameCount, spectrogram } from "@chirp/core";
 import { FINGERPRINT_CHUNK } from "@chirp/db";
 import { get, post } from "./api";
-import { ROOT, type CorpusTrack } from "./corpus";
-import { decode, probe } from "./decode";
+import { ROOT } from "./corpus";
+import { decode } from "./decode";
 import { download, resolve } from "./resolve";
 import { findSongBySource, insertFingerprints, insertSong, openIndex, refreshHashStats } from "./store";
 
@@ -35,9 +35,6 @@ if (urls.length === 0) {
 const push = flag("push");
 const dbPath = option("db") ?? "chirp.sqlite";
 const db = push ? null : openIndex(dbPath);
-
-const corpusPath = `${ROOT}/corpus.json`;
-const corpus: CorpusTrack[] = await Bun.file(corpusPath).json();
 
 let added = 0;
 
@@ -76,9 +73,6 @@ for (const url of urls) {
       }
     }
 
-    const relative = file.startsWith(`${ROOT}/`) ? file.slice(ROOT.length + 1) : file;
-    const listed = corpus.some((t) => t.source === meta.source && t.source_id === meta.source_id);
-    if (!listed) corpus.push({ ...song, ...(await probe(file)), file: relative });
     added++;
 
     console.log(`  + ${label}  song ${songId}, ${prints.length.toLocaleString()} hashes  [${meta.source}]`);
@@ -88,8 +82,6 @@ for (const url of urls) {
 }
 
 if (added > 0) {
-  await Bun.write(corpusPath, `${JSON.stringify(corpus, null, 2)}\n`);
-
   const heavy = db ? refreshHashStats(db) : (await post<{ heavy: number }>("/api/songs/stats", {})).heavy;
   console.log(`\nadded ${added} of ${urls.length}, ${heavy.toLocaleString()} hashes flagged too common`);
 } else {

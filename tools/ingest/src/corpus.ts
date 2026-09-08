@@ -1,28 +1,25 @@
+import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-
-export interface CorpusTrack {
-  file: string;
-  title: string;
-  artist: string;
-  album: string | null;
-  duration_s: number;
-  sample_rate: number;
-  channels: number;
-  source_url: string;
-  attribution: string;
-  cover_url?: string | null;
-  source?: string | null;
-  source_id?: string | null;
-  youtube_id?: string | null;
-  frame_count?: number;
-}
 
 export const ROOT = resolve(import.meta.dir, "../../..");
 
-export async function loadCorpus(): Promise<CorpusTrack[]> {
-  return Bun.file(`${ROOT}/corpus.json`).json();
+const AUDIO = /\.(mp3|m4a|opus|ogg|oga|flac|wav|webm)$/i;
+
+export interface LocalTrack {
+  file: string;
+  title: string;
+  artist: string;
 }
 
-export function trackPath(track: CorpusTrack): string {
+export async function loadCorpus(): Promise<LocalTrack[]> {
+  const names = await readdir(`${ROOT}/tracks`).catch(() => [] as string[]);
+
+  return names
+    .filter((name) => AUDIO.test(name) && Bun.file(`${ROOT}/tracks/${name}`).size > 0)
+    .sort()
+    .map((name) => ({ file: `tracks/${name}`, title: name.replace(AUDIO, ""), artist: "local" }));
+}
+
+export function trackPath(track: LocalTrack): string {
   return `${ROOT}/${track.file}`;
 }
