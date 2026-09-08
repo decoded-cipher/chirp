@@ -11,7 +11,7 @@
     "build": "bun run --cwd apps/web build",
     "deploy": "bun run build && bunx wrangler deploy --config apps/api/wrangler.jsonc",
     "test": "bun test",
-    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/core/tsconfig.test.json && tsc --noEmit -p apps/api/tsconfig.json"
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/core/tsconfig.test.json && tsc --noEmit -p apps/api/tsconfig.json && tsc --noEmit -p tools/ingest/tsconfig.json && tsc --noEmit -p tools/bench/tsconfig.json"
   },
   "devDependencies": {
     "@types/bun": "^1.4.1",
