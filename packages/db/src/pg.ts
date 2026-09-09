@@ -184,8 +184,17 @@ export const songById = async (db: Db, id: number): Promise<SongRow | null> => {
   return row ?? null;
 };
 
+export interface CatalogueRow extends SongRow {
+  postings: number;
+}
+
 export const catalogue = (db: Db) =>
-  db<SongRow[]>`SELECT * FROM songs ORDER BY artist, title`;
+  db<CatalogueRow[]>`
+    SELECT s.*, COALESCE(f.postings, 0)::int AS postings
+    FROM songs s
+    LEFT JOIN (SELECT song_id, COUNT(*)::int AS postings FROM fingerprints GROUP BY song_id) f
+      ON f.song_id = s.id
+    ORDER BY s.artist, s.title`;
 
 export const findSongBySource = async (db: Db, source: string, sourceId: string, sourceUrl: string) => {
   const [row] = await db<{ id: number; title: string }[]>`
