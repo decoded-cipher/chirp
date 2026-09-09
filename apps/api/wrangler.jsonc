@@ -2,6 +2,7 @@
   "name": "chirp",
   "main": "src/index.ts",
   "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "assets": {
     "directory": "../web/dist"
@@ -9,14 +10,11 @@
   "routes": [
     { "pattern": "chirp.arjunkrishna.dev", "custom_domain": true }
   ],
-  "d1_databases": [
+  "hyperdrive": [
     {
-      "binding": "DB",
-      "database_name": "chirp",
-      "database_id": "2a42283a-0d79-42ff-9665-bb8b7be3c1cd",
-      // Keys the local dev store, so it survives the id above changing.
-      "preview_database_id": "local",
-      "migrations_dir": "migrations"
+      "binding": "HYPERDRIVE",
+      "id": "b362f339732443fb944ab5d42466b313",
+      "localConnectionString": "postgres://chirp:chirp@localhost:55432/chirp"
     }
   ]
 }

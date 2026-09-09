@@ -9,9 +9,10 @@
     "migrations": "bun scripts/migrations.ts"
   },
   "dependencies": {
-    "hono": "^4",
     "@chirp/core": "workspace:*",
-    "@chirp/db": "workspace:*"
+    "@chirp/db": "workspace:*",
+    "hono": "^4",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "wrangler": "^4"

@@ -1,4 +1,4 @@
 export interface Env {
-  DB: D1Database;
+  HYPERDRIVE: Hyperdrive;
   ADMIN_TOKEN?: string;
 }
