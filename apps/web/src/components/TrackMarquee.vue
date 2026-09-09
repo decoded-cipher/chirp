@@ -11,6 +11,8 @@ const copies = ref(2);
 
 const duration = computed(() => Math.max(12, shift.value / props.speed));
 
+const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+
 async function fit() {
   await nextTick();
   const lane = rail.value?.firstElementChild;
@@ -46,7 +48,7 @@ onUnmounted(() => window.removeEventListener("resize", fit));
           <a
             :href="song.source_url ?? '#'" target="_blank" rel="noreferrer"
             :tabindex="lane > 1 ? -1 : undefined"
-            class="flex w-60 items-center gap-3 rounded-xl border border-ink-700 bg-ink-850/60 p-2 transition-colors hover:border-signal-500/40 hover:bg-ink-800/70"
+            class="flex w-64 items-center gap-3 rounded-xl border border-ink-700 bg-ink-850/60 p-2 transition-colors hover:border-signal-500/40 hover:bg-ink-800/70"
           >
             <img
               v-if="song.cover_url" :src="song.cover_url" alt="" loading="lazy"
@@ -58,6 +60,12 @@ onUnmounted(() => window.removeEventListener("resize", fit));
               <span class="block truncate text-xs font-medium text-mist-50">{{ song.title }}</span>
               <span class="block truncate text-[11px] text-mist-400">{{ song.artist }}</span>
             </span>
+
+            <span
+              v-if="song.postings"
+              class="shrink-0 font-mono text-[10px] tabular-nums text-mist-500"
+              :title="`${song.postings.toLocaleString()} fingerprints`"
+            >{{ compact(song.postings) }}</span>
           </a>
         </li>
       </ul>

@@ -8,6 +8,7 @@ export interface Song {
   youtube_id: string | null;
   cover_url: string | null;
   source_url: string | null;
+  postings: number;
 }
 
 export interface MatchResult extends Song {
