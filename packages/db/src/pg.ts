@@ -3,8 +3,19 @@ import {
   type Fingerprint, type Identification, type Match,
 } from "@chirp/core";
 import postgres, { type Sql } from "postgres";
-import { HEAVY_FLOOR, MAX_POSTINGS_PER_HASH, RANKED_LIMIT } from "./queries";
 import { newSongId, type SongRow } from "./schema";
+
+export const FINGERPRINT_CHUNK = 2000;
+
+export const HEAVY_FLOOR = 32;
+
+export const MAX_POSTINGS_PER_HASH = 512;
+
+export const RANKED_LIMIT = 10;
+
+export const CARRY_VOTE_FLOOR = 3;
+
+export const CARRY_LIMIT = 50;
 
 export type Db = Sql;
 
