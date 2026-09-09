@@ -1,38 +1,32 @@
-import { Database } from "bun:sqlite";
-import { extractPeaks, fingerprint, spectrogram } from "@chirp/core";
-import { decode, loadCorpus, trackPath } from "@chirp/ingest";
+import { connect } from "@chirp/db";
 
-const db = new Database("chirp.sqlite", { readonly: true });
-const corpus = await loadCorpus();
+const db = connect(process.env.PG_URL ?? "postgres://chirp:chirp@localhost:55432/chirp");
 
-const total = db.query<{ n: number }, []>("SELECT COUNT(*) n FROM fingerprints").get()!.n;
-const distinct = db.query<{ n: number }, []>("SELECT COUNT(*) n FROM (SELECT hash FROM fingerprints GROUP BY hash)").get()!.n;
-console.log(`${total.toLocaleString()} rows, ${distinct.toLocaleString()} distinct hashes, mean ${(total / distinct).toFixed(1)} postings/hash\n`);
+const [totals] = await db<{ postings: number; hashes: number; tracks: number }[]>`
+  SELECT (SELECT COUNT(*)::int FROM fingerprints) postings,
+         (SELECT COUNT(DISTINCT hash)::int FROM fingerprints) hashes,
+         (SELECT COUNT(*)::int FROM songs) tracks`;
 
-console.log("posting-count distribution:");
-for (const row of db.query<{ bucket: string; hashes: number; rows: number }, []>(`
-  SELECT CASE
-    WHEN c <= 8 THEN 'a <=8' WHEN c <= 32 THEN 'b <=32' WHEN c <= 128 THEN 'c <=128'
-    WHEN c <= 512 THEN 'd <=512' WHEN c <= 2048 THEN 'e <=2048' ELSE 'f >2048' END AS bucket,
-    COUNT(*) AS hashes, SUM(c) AS rows
-  FROM (SELECT hash, COUNT(*) c FROM fingerprints GROUP BY hash)
-  GROUP BY bucket ORDER BY bucket`).all()) {
-  console.log(`  ${row.bucket.slice(2).padEnd(7)} ${String(row.hashes).padStart(7)} hashes  ` +
-    `${String(row.rows).padStart(9)} rows  ${((row.rows / total) * 100).toFixed(1).padStart(5)}% of index`);
+console.log(`  ${totals!.tracks} tracks, ${totals!.postings.toLocaleString()} postings across ` +
+  `${totals!.hashes.toLocaleString()} distinct hashes ` +
+  `(${(totals!.postings / totals!.hashes).toFixed(2)} per hash)\n`);
+
+const rows = await db<{ bucket: string; hashes: number; postings: number; share: number }[]>`
+  WITH p AS (SELECT hash, COUNT(*)::int n FROM fingerprints GROUP BY hash)
+  SELECT CASE WHEN n = 1 THEN 'exactly 1'
+              WHEN n <= 8 THEN '2 to 8'
+              WHEN n <= 32 THEN '9 to 32'
+              WHEN n <= 128 THEN '33 to 128'
+              WHEN n <= 512 THEN '129 to 512'
+              ELSE 'over 512' END AS bucket,
+         COUNT(*)::int hashes, SUM(n)::int postings,
+         ROUND(100.0 * SUM(n) / (SELECT SUM(n) FROM p), 1)::float share
+  FROM p GROUP BY 1
+  ORDER BY MIN(n)`;
+
+console.log("  postings per hash      hashes      postings   share of index");
+for (const r of rows) {
+  console.log(`  ${r.bucket.padEnd(18)}${r.hashes.toLocaleString().padStart(11)}` +
+    `${r.postings.toLocaleString().padStart(14)}${`${r.share}%`.padStart(12)}`);
 }
-
-const query = fingerprint(extractPeaks(spectrogram(await decode(trackPath(corpus[0]!), 30, 6))));
-const pairs = JSON.stringify(query.map((p) => [p.hash, p.frame]));
-
-console.log("\ncost of a single query under a per-hash posting cap:");
-for (const cap of [0, 2048, 512, 128, 64, 32]) {
-  const sql = cap === 0
-    ? `WITH q(hash) AS (SELECT json_extract(value,'$[0]') FROM json_each(?1))
-       SELECT COUNT(*) n FROM q JOIN fingerprints f ON f.hash = q.hash`
-    : `WITH q(hash) AS (SELECT json_extract(value,'$[0]') FROM json_each(?1)),
-            heavy AS (SELECT hash FROM fingerprints GROUP BY hash HAVING COUNT(*) > ${cap})
-       SELECT COUNT(*) n FROM q JOIN fingerprints f ON f.hash = q.hash
-       WHERE f.hash NOT IN (SELECT hash FROM heavy)`;
-  const n = db.query<{ n: number }, [string]>(sql).get(pairs)!.n;
-  console.log(`  cap ${cap === 0 ? "none" : String(cap).padStart(4)}  ${String(n).padStart(7)} rows read`);
-}
+await db.end();

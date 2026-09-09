@@ -1,9 +1,9 @@
-import { Database } from "bun:sqlite";
-import { extractPeaks, fingerprint, spectrogram, type Fingerprint } from "@chirp/core";
+import { extractPeaks, fingerprint, sampleFingerprints, spectrogram, type Fingerprint } from "@chirp/core";
+import { connect, identifyIn } from "@chirp/db";
 import { decode, loadCorpus, trackPath } from "@chirp/ingest";
-import { identifyIn } from "@chirp/ingest/store";
 import { mixNoise } from "./degrade";
 
+const db = connect(process.env.PG_URL ?? "postgres://chirp:chirp@localhost:55432/chirp");
 const corpus = await loadCorpus();
 const OFFSETS = [30, 60.5, 90];
 const QUERIED = 12;
@@ -14,47 +14,39 @@ const owner: number[] = [];
 for (let i = 0; i < QUERIED; i++) {
   for (const at of OFFSETS) {
     const pcm = await decode(trackPath(corpus[i]!), at, 6);
-    clean.push(fingerprint(extractPeaks(spectrogram(pcm))));
-    noisy.push(fingerprint(extractPeaks(spectrogram(mixNoise(pcm, 0, i * 31 + at)))));
+    clean.push(sampleFingerprints(fingerprint(extractPeaks(spectrogram(pcm)))));
+    noisy.push(sampleFingerprints(fingerprint(extractPeaks(spectrogram(mixNoise(pcm, 0, i * 31 + at))))));
     owner.push(i + 1);
   }
 }
 
-console.log("  cap    rows      index      clean    0 dB SNR   rows/query   latency");
-for (const cap of [0, 512, 128, 64, 32, 16]) {
-  await Bun.$`cp chirp.sqlite /tmp/chirp-cap.sqlite`.quiet();
-  const db = new Database("/tmp/chirp-cap.sqlite");
-  if (cap > 0) {
-    db.run(`DELETE FROM fingerprints WHERE hash IN
-            (SELECT hash FROM fingerprints GROUP BY hash HAVING COUNT(*) > ${cap})`);
-    db.run("VACUUM");
-  }
+console.log("  The cap is applied at query time, so this sweeps the parameter");
+console.log("  rather than deleting postings.\n");
+console.log("  cap        skipped hashes   clean    0 dB SNR   latency");
 
-  const rows = db.query<{ n: number }, []>("SELECT COUNT(*) n FROM fingerprints").get()!.n;
-  const bytes = db.query<{ n: number }, []>("SELECT page_count * page_size n FROM pragma_page_count(), pragma_page_size()").get()!.n;
+for (const cap of [1_000_000, 512, 128, 64, 32]) {
+  const [{ n: skipped }] = await db<{ n: number }[]>`
+    SELECT COUNT(*)::int n FROM hash_stats WHERE postings > ${cap}`;
 
-  const score = (queries: Fingerprint[][]) =>
-    queries.filter((q, n) => identifyIn(db, q)?.songId === owner[n]).length;
+  const score = async (queries: Fingerprint[][]) => {
+    let hit = 0;
+    for (const [n, q] of queries.entries()) {
+      if ((await identifyIn(db, q, cap))?.songId === owner[n]) hit++;
+    }
+    return hit;
+  };
 
-  const scans = clean.map((q) =>
-    db.query<{ n: number }, [string]>(`
-      WITH q(hash) AS (SELECT json_extract(value,'$[0]') FROM json_each(?1))
-      SELECT COUNT(*) n FROM q JOIN fingerprints f ON f.hash = q.hash`)
-      .get(JSON.stringify(q.map((p) => [p.hash, p.frame])))!.n);
-
-  const t0 = performance.now();
-  const c = score(clean);
-  const latency = (performance.now() - t0) / clean.length;
-  const n = score(noisy);
+  const started = performance.now();
+  const c = await score(clean);
+  const latency = (performance.now() - started) / clean.length;
+  const n = await score(noisy);
 
   console.log(
-    `${(cap === 0 ? "none" : String(cap)).padStart(6)}` +
-      `${(rows / 1000).toFixed(0).padStart(7)}k` +
-      `${(bytes / 1e6).toFixed(1).padStart(8)} MB` +
+    `${(cap > 100_000 ? "none" : String(cap)).padStart(6)}` +
+      `${skipped.toLocaleString().padStart(17)}` +
       `${`${c}/${clean.length}`.padStart(10)}` +
       `${`${n}/${noisy.length}`.padStart(11)}` +
-      `${Math.round(scans.reduce((a, b) => a + b, 0) / scans.length).toLocaleString().padStart(12)}` +
-      `${latency.toFixed(0).padStart(9)}ms`,
+      `${`${latency.toFixed(0)}ms`.padStart(10)}`,
   );
-  db.close();
 }
+await db.end();
