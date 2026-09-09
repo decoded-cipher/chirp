@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import type { Envelope } from "../workers/fingerprint.worker";
 
-const props = defineProps<{ envelope: Envelope; markerRatio?: number | null }>();
+const props = defineProps<{ envelope: Envelope }>();
 
 const canvas = ref<HTMLCanvasElement>();
 const HEIGHT = 96;
@@ -35,15 +35,6 @@ function draw() {
     const top = mid - max[i]! * mid;
     const bottom = mid - min[i]! * mid;
     ctx.fillRect(i * step, top, Math.max(step * 0.8, 0.6), Math.max(bottom - top, 0.8));
-  }
-
-  if (props.markerRatio != null) {
-    ctx.strokeStyle = "rgba(255,255,255,0.5)";
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(props.markerRatio * width, 0);
-    ctx.lineTo(props.markerRatio * width, HEIGHT);
-    ctx.stroke();
   }
 }
 

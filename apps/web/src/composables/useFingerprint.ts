@@ -1,4 +1,3 @@
-import { ref } from "vue";
 import type { FingerprintReply, FingerprintRequest } from "../workers/fingerprint.worker";
 
 export function runFingerprint(pcm: Float32Array): Promise<FingerprintReply> {
@@ -18,14 +17,4 @@ export function runFingerprint(pcm: Float32Array): Promise<FingerprintReply> {
     const request: FingerprintRequest = { pcm };
     worker.postMessage(request);
   });
-}
-
-export function useElapsed() {
-  const ms = ref(0);
-  let start = 0;
-  return {
-    ms,
-    begin: () => { start = performance.now(); },
-    end: () => { ms.value = performance.now() - start; return ms.value; },
-  };
 }
