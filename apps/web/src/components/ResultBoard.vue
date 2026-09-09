@@ -3,6 +3,7 @@ import { computed, defineAsyncComponent } from "vue";
 import type { IdentifyResponse } from "../api";
 import type { FingerprintReply } from "../workers/fingerprint.worker";
 import BentoTile from "./BentoTile.vue";
+import ChirpMark from "./ChirpMark.vue";
 import HashAnatomy from "./HashAnatomy.vue";
 import SpectrogramView from "./SpectrogramView.vue";
 import WaveformView from "./WaveformView.vue";
@@ -34,8 +35,8 @@ const album = computed(() => {
   <div class="min-h-dvh px-4 pb-6 pt-4 sm:px-6">
     <header class="mb-4 flex items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
-        <span class="size-2 rounded-full bg-signal-500" />
-        <span class="font-mono text-xs uppercase tracking-[0.24em] text-signal-500">chirp</span>
+        <ChirpMark :size="26" class="shrink-0 text-signal-500" />
+        <span class="text-xl font-extrabold tracking-[-0.03em] text-mist-50">chirp</span>
       </div>
       <button
         class="flex items-center gap-2 rounded-full border border-ink-600 px-4 py-1.5 text-xs text-mist-300 transition-colors hover:border-signal-500/50 hover:text-mist-50"
