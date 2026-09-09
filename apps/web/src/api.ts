@@ -6,6 +6,8 @@ export interface Song {
   duration_s: number | null;
   attribution: string | null;
   youtube_id: string | null;
+  cover_url: string | null;
+  source_url: string | null;
 }
 
 export interface MatchResult extends Song {

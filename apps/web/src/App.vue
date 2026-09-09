@@ -71,7 +71,7 @@ async function listen() {
       :elapsed="mic.elapsed.value"
       :level="mic.level.value"
       :mic-supported="mic.supported"
-      :indexed="songs.length"
+      :songs="songs"
       :live="listener.live.value"
       :rounds="listener.rounds.value"
       @listen="listen"
@@ -79,7 +79,7 @@ async function listen() {
     />
 
     <p v-if="error"
-       class="fixed inset-x-0 bottom-20 mx-auto w-fit rounded-full border border-fail-500/40 bg-fail-500/10 px-4 py-2 text-xs text-fail-500">
+       class="fixed inset-x-0 top-16 mx-auto w-fit rounded-full border border-fail-500/40 bg-fail-500/10 px-4 py-2 text-xs text-fail-500">
       {{ error }}
     </p>
   </template>
