@@ -42,20 +42,21 @@ identifies a track is time coherence: if the snippet really sits at 2:01, every
 matching hash agrees on the same offset. Subtract query time from index time,
 bucket the differences, and the right answer is a spike out of a flat floor.
 
-The whole vote is one SQL statement, so it runs identically on SQLite locally
-and D1 in production:
+The whole vote is one Postgres statement. The query arrives as two integer
+arrays, and the same statement returns the ranking, the song metadata and the
+alignment histogram together — the round trip costs more than the query does:
 
 ```sql
 WITH q(hash, qframe) AS (
-  SELECT json_extract(value,'$[0]'), json_extract(value,'$[1]') FROM json_each(?1)
+  SELECT * FROM unnest($1::int[], $2::int[])
 ),
 tally AS (
   SELECT f.song_id,
-         CAST(FLOOR((f.anchor_frame - q.qframe) / 2.0) AS INTEGER) AS offset_bucket,
+         (f.anchor_frame - q.qframe) / 2 AS bucket,
          COUNT(*) AS votes
   FROM q JOIN fingerprints f ON f.hash = q.hash
-  GROUP BY f.song_id, offset_bucket
-  HAVING votes >= 20 AND offset_bucket >= 0
+  WHERE f.anchor_frame >= q.qframe
+  GROUP BY 1, 2
 )
 -- then one alignment per song, best first
 ```
@@ -94,11 +95,11 @@ peak foreign votes from 731 to 68.
 absorb peak drift under noise. Measured at 0 dB SNR: fuzz 0 recovered 21/24,
 fuzz 1 got 17/24, fuzz 2 got 13/24. Removed.
 
-**Dropping data made it more accurate.** 374 hashes — 0.29% of the distinct
-total — carried 21% of the index. Capping postings per hash at 512 cut rows read
-per query from 175,932 to 40,224, latency from 68 ms to 15 ms, *and* improved
-noise accuracy from 30/36 to 33/36. A hash that appears everywhere identifies
-nothing while voting for everyone.
+**Dropping data made it more accurate.** 70 hashes — 0.06% of the distinct
+total — carry 12% of the index. Skipping any hash with more than 512 postings
+cuts query latency from 34 ms to 10 ms *and* improves noise accuracy from 29/36
+to 32/36. A hash that appears everywhere identifies nothing while voting for
+everyone.
 
 ## Stack
 
@@ -106,15 +107,16 @@ TypeScript throughout, in a Bun workspace.
 
 ```
 packages/core     DSP and matching — FFT, spectrogram, peaks, hashing, scoring
-packages/db       schema and the SQL shared by SQLite and D1
+packages/db       the Postgres data layer: schema, ingest and the match query
 apps/web          Vue 3 + Vite + Tailwind; fingerprints in a Web Worker
-apps/api          Hono on Cloudflare Workers, backed by D1
+apps/api          Hono on Cloudflare Workers, Postgres over Hyperdrive
 tools/ingest      yt-dlp + ffmpeg ingest, CLI and API clients
 tools/bench       the benchmarks behind every number above
 ```
 
 One Cloudflare Worker serves both the API and the static site, so there is no
-second origin and no CORS.
+second origin and no CORS. The database is self-hosted Postgres, reached through
+Hyperdrive over a Cloudflare Tunnel so it stays off the public internet.
 
 ## Running it
 
@@ -122,6 +124,13 @@ Needs [Bun](https://bun.sh), `ffmpeg` and `yt-dlp`.
 
 ```bash
 bun install
+
+docker run -d --name chirp-pg -p 55432:5432 \
+  -e POSTGRES_USER=chirp -e POSTGRES_PASSWORD=chirp -e POSTGRES_DB=chirp \
+  postgres:17-alpine
+
+# fingerprint everything in tracks/ into the local database
+bun run tools/ingest/src/cli.ts --reset
 
 # index a track from any URL yt-dlp supports
 bun run tools/ingest/src/add.ts "https://youtu.be/…"
@@ -149,5 +158,7 @@ audio that was actually fingerprinted.
 - **Position is only as unique as the audio.** On a repetitive track two points
   can share 41% of their hashes, and under heavy noise the vote can land on the
   wrong repeat. The song is still right.
-- **D1's free tier allows roughly 124 identifications a day** at 40k rows read
-  per query.
+- **The database is one container on one small machine.** No replica, no
+  failover. Identification is a single query on Hyperdrive's free plan, which
+  allows 100,000 a day, but the box holds about 250 tracks in page cache before
+  queries start reaching disk.
