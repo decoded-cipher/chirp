@@ -4,15 +4,15 @@ import { get, post } from "./api";
 import { ROOT } from "./corpus";
 import { decode } from "./decode";
 import { download, resolve } from "./resolve";
-import { findSongBySource, insertFingerprints, insertSong, openIndex, refreshHashStats } from "./store";
+import { connect, findSongBySource, insertFingerprints, insertSong, refreshHashStats } from "@chirp/db";
 
 const USAGE = `
 chirp add — index a track from a URL
 
   bun run tools/ingest/src/add.ts <url>... [options]
 
-  --push             write to the API (D1) instead of the local index
-  --db <path>        local index to write (default chirp.sqlite)
+  --push             write through the API instead of connecting directly
+  --db <url>         Postgres to write (default $PG_URL)
 
 Works with anything yt-dlp supports: YouTube, SoundCloud, Bandcamp,
 archive.org, Vimeo, Mixcloud, direct audio URLs. Spotify and Apple Music
@@ -33,8 +33,9 @@ if (urls.length === 0) {
 }
 
 const push = flag("push");
-const dbPath = option("db") ?? "chirp.sqlite";
-const db = push ? null : openIndex(dbPath);
+const db = push
+  ? null
+  : connect(option("db") ?? process.env.PG_URL ?? "postgres://chirp:chirp@localhost:55432/chirp");
 
 let added = 0;
 
@@ -44,7 +45,7 @@ for (const url of urls) {
     const label = `${meta.artist} — ${meta.title}`;
 
     const existing = db
-      ? findSongBySource(db, meta.source, meta.source_id, meta.source_url)
+      ? await findSongBySource(db, meta.source, meta.source_id, meta.source_url)
       : (await get<{ song: { id: number } | null }>(
           `/api/songs/lookup?source=${encodeURIComponent(meta.source)}` +
             `&id=${encodeURIComponent(meta.source_id)}&url=${encodeURIComponent(meta.source_url)}`,
@@ -62,8 +63,8 @@ for (const url of urls) {
 
     let songId: number;
     if (db) {
-      songId = insertSong(db, song);
-      insertFingerprints(db, songId, prints);
+      songId = (await insertSong(db, song)).id;
+      await insertFingerprints(db, songId, prints);
     } else {
       songId = (await post<{ songId: number }>("/api/songs", song)).songId;
       for (let n = 0; n < prints.length; n += FINGERPRINT_CHUNK) {
@@ -82,8 +83,10 @@ for (const url of urls) {
 }
 
 if (added > 0) {
-  const heavy = db ? refreshHashStats(db) : (await post<{ heavy: number }>("/api/songs/stats", {})).heavy;
+  const heavy = db ? await refreshHashStats(db) : (await post<{ heavy: number }>("/api/songs/stats", {})).heavy;
   console.log(`\nadded ${added} of ${urls.length}, ${heavy.toLocaleString()} hashes flagged too common`);
 } else {
   console.log(`\nnothing added`);
 }
+
+await db?.end();

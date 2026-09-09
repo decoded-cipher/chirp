@@ -7,7 +7,6 @@
     "@chirp/db": "workspace:*"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./store": "./src/store.ts"
+    ".": "./src/index.ts"
   }
 }
